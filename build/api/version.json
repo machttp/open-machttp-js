@@ -1,0 +1,8 @@
+{
+	"url" : "http://downloads.machttp.org/machttp-js/mac/MacHTTP-js-1.0.23-mac.zip",
+	"name" : "MacHTTP-js 1.0.23",
+	"platform" : "mac",
+	"version" : "1.0.23",
+	"pub_date" : "2016-11-07T20:00:00+00:00",
+	"notes" : "Adds support for UPnP, drag and drop web folders, Linux command line options, Docker storage"
+}

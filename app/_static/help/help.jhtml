@@ -1,0 +1,160 @@
+<html>
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Help</title>
+	<style>
+		xhtml, xbody {
+			height : 100%;
+		}
+		
+		body {
+			padding: 4px;
+		}
+		
+		.loadMeter {
+			-moz-user-select: none;
+			-webkit-user-select: none;
+			-ms-user-select: none;
+			height: 30px;
+			font-size: 24px;
+		}
+		
+		.xmeterBox {
+			border: solid 1px;
+			height: 40px;
+		}
+		
+		#console  {
+			overflow-y: auto;
+			height : 80%;
+			border : solid 1px;
+			font-size: 100%;
+			font-family: "Menlo Regular", "Lucida Console", Monaco, monospace;
+		}
+		
+		.status-text {
+			font: 9px "Geneva", Helvetica, Arial, sans-serif;
+			height: 40px;
+		}
+		
+		.menu-button {
+			display: block;
+			text-align: center;
+			word-wrap: break-word;
+			font-size: .75em;
+		}
+		
+		.xfilled {
+			height : 100%;
+		}
+		
+		.xcontrols {
+			height : 72px;
+		}
+		
+		.small-hr {
+			height: 8px;
+			margin-top : 1px;
+			margin-bottom: 1px;
+		}
+		
+	</style>
+	<script>
+		try {
+			window.nodeRequire = require;
+			delete window.require;
+			delete window.exports;
+			delete window.module;
+		}
+		catch (e) {
+			console.log ("skipping electron inits");
+		}
+	</script>
+	<script src="/_static/lib/jquery/dist/jquery.js"></script>
+	<link rel="stylesheet" href="/_static/lib/fontawesome/css/font-awesome.min.css">
+	<script src="/_static/lib/jquery/dist/jquery.js"></script>
+	<link rel="stylesheet" href="<%
+									var css="";
+										var theme = context.odb.getAttribute ("system/settings/globalTheme");
+										css = context.odb.getAttribute ("system/themes/" + theme);
+									css;
+								%>">
+	<script src="/_static/lib/bootstrap/dist/js/bootstrap.min.js"></script>
+	<script src="/_static/lib/jquery-sparkline/dist/jquery.sparkline.min.js"></script>
+
+</head>
+<body>
+	<div class="container-fluid filled">
+		<div class="row controls">
+			<div class="col-sm-3 hidden-xs">
+				<h3>
+					<img class="image-responsive logo-png hidden-xs" src="images/machttp-icon.png" width="20%">
+					Help
+				</h3>
+			</div>
+			<div class="col-sm-9">
+				<button type="button" class="btn btn-default btn-md" onclick="GoHome();">
+					<span class="glyphicon glyphicon-home" aria-hidden="true"></span>
+					<span class="menu-button">Home</span>
+				</button>
+			</div>
+		</div>
+		<hr class="small-hr" />
+		<div class="help-heading">
+			<h2>About MacHTTP-js</h2>
+		</div>
+		<p class="help-text">
+			MacHTTP-js is a new take on an old classic. Originally created by Chuck Shotton,
+			MacHTTP was the first commercially available web server on the Internet. For its
+			25th anniversary, Chuck and MacHTTP.org are releasing MacHTTP-js as the 21st
+			century successor to the original.
+		</p>
+		<p class="help-text">
+			MacHTTP-js is a straightforward web server application that will serve content
+			from any folder on your computer that you specify. In addition, it has a rich
+			Javascript development environment that will allow users to create powerful
+			desktop or collaborative Internet applications.
+		</p>
+		<div class="help-heading">
+			<h2>Quick Start</h2>
+		</div>
+		<p class="help-text">
+			MacHTTP-js can be launched like any application, by double-clicking it. When
+			running for the first time, MacHTTP-js will offer a settings page that needs
+			to be configured.
+		</p>
+		<p class="help-text">
+			Add your first and last name. 
+		</p>
+		<p class="help-text">
+			For now, leave the Web Server Port untouched.
+		</p>
+		<p class="help-text">
+			The Web Site Folder indicates which folder on your computer will hold the contents
+			for the primary web server. Enter a <em>full</em> path to the folder, like<br />
+			<code>/Users/mrwheat/Sites/</code><br />
+			or use the "Select..." button to pick a folder.<br /><br />
+			
+			The server will look for an "index.html" file by default when accessing the top
+			level of your MacHTTP-js server via a Web browser. You can use a URL like the
+			following to access your server once it is configured: <br />
+			<code>http://localhost:3000/</code>
+		</p>
+		<p class="help-text">
+			Skip the Shared Data Folder for now and click Submit to save your changes. You
+			now need to quit and restart MacHTTP-js for the changes to take effect. Note: 
+			MacHTTP-js creates a file in your home directory called "machttp-js.odb", which
+			is the object database that holds MacHTTP-js settings, applications, and data.
+			If you delete or move this file, MacHTTP-js will create a new, empty version.
+		</p>
+
+	</div>
+	
+	<script>
+		function GoHome () {
+			window.open ("/odb/system/html/index", '_self');
+		}
+		
+	</script>
+</body>
+</html>

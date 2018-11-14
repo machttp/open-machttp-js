@@ -1,0 +1,213 @@
+<html>
+    <head>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="/_static/lib/fontawesome/css/font-awesome.min.css">
+		<script src="/_static/lib/jquery/dist/jquery.js"></script>
+		<script src="/_static/lib/jqueryrotate/jQueryRotate.js"></script>
+		<link rel="stylesheet" href="<%
+										var css="";
+											var theme = context.odb.getAttribute ("system/settings/globalTheme");
+											css = context.odb.getAttribute ("system/themes/" + theme);
+										css;
+									%>">
+		<!-- link rel="stylesheet" href="/lib/bootstrap/dist/css/bootstrap.css" -->
+		<script src="/_static/lib/bootstrap/dist/js/bootstrap.min.js"></script>
+		<link rel="stylesheet" href="styles.css">
+        <title>Sample Chat</title>
+    </head>
+    <body>
+		<div class="container-fluid">
+			<div class="row vertical-align">
+				<div class="col-xs-3">
+					<h2>Sample Chat</h2>
+				</div>
+				<div class="col-xs-8">
+					<div id="console">
+					</div>
+				</div>
+				<div class="col-xs-1">
+					<span id="spinner" class="glyphicon glyphicon-refresh" aria-hidden="true" onclick="TogglePolling();"></span>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-xs-12" id="#outside">
+					<div id="messages" class="list-group">
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-xs-12">
+					<form class="form-inline">
+						<div class="form-group">
+							<label for="toField">To</label>
+							<input type="text" class="form-control" id="toField">
+						</div>
+						<div class="form-group">
+							<label for="fromField">From</label>
+							<input type="text" class="form-control" id="fromField">
+						</div>
+						<div class="form-group">
+							<label for="msgField">Msg</label>
+							<input type="text" class="form-control" id="msgField" size="60"
+									onkeypress="return HandleCR (event, this);">
+						</div>
+					</form>
+					<!--
+					<a class="btn btn-default" href="#" role="button" 
+						onclick="addmsg('Thing ' + ++ct, 'Message goes here');">
+						Add Stuff
+					</a>
+					-->
+				</div>
+			</div>
+		</div>
+       <script>
+/************ !!!! Change this line when importing to ODB !!!!! **********/
+       		var serviceURL = "/odb/app/com.concluent.chat/api/service";
+       		var ct=0;
+       		
+       		function logmsg (msg) {
+       			var cons = $("#console");
+       			cons.append (msg + "<br />\n");
+       			cons.scrollTop (cons.prop('scrollHeight'));
+       			return false;
+       		}
+       		
+       		function addmsg (title,msg) {
+       			var list = $("#messages");
+       			list.append ("<div class=\"list-group-item\"><h4 class=\"list-group-item-heading\">" +
+							title + "</h4><p class=\"list-group-item-text\">" +
+							msg + "</p></div>");
+				list.scrollTop (list.prop('scrollHeight'));
+				return false;
+			}
+			
+			var pollingActive = true;
+			function TogglePolling () {
+				pollingActive = !pollingActive;
+				logmsg ("Polling: " + pollingActive);
+			}
+			
+			
+			function ConsumeFile (fname) {
+				SendCmd ("consume", fname);
+			}
+			
+			function HandleConsumeFile (args) {
+			
+				readdirPending = false;
+				
+				logmsg ("handleconsume: " + JSON.stringify (args));
+				if (args.contents === null || args.contents == "" || Object.keys(args.contents).length == 0) {
+					console.log ("args were empty in HandleConsume.");
+					return;
+				}
+				else {
+					console.log ("processing " + args.contents.command);
+				}
+					
+				switch (args.contents.command) {
+					case "chatmessage" : 
+						addmsg ("<b>To:</b> " + args.contents.to + ", <b>From:</b> " + args.contents.from, args.name + ": " + args.contents.msg);
+						break;
+				}
+			}
+			
+			function ProcessResponse (data) {
+				switch (data.command) {
+					case "sendmsg":
+//						addmsg ("<b>To:</b> " + data.args.to + ", <b>From:</b> " + data.args.from, data.args.msg);
+						break;
+						
+					case "readdir":
+//						logmsg ("readdir: " + JSON.stringify (data));
+						if (data.args.files.length>1)
+							ConsumeFile (data.args.path + "/" + data.args.files[1]);
+						else
+							readdirPending = false;
+						break;
+						
+					case "consume":
+//						logmsg ("consume: " + data.args);
+						HandleConsumeFile (data.args);
+						break;
+				}
+			}
+			
+			function SendCmd (cmd, vargs) {
+				var json = {
+						"command" : cmd,
+						"args" : vargs
+					};
+
+				try {
+					$.ajax ({
+						type: "POST",
+						url: serviceURL, 
+						data: JSON.stringify(json), 
+						contentType: "application/json",
+						dataType: "json",
+						success: function (data, status) {
+//							logmsg ("SendCmd result: " + status + ": " + JSON.stringify(data));
+							ProcessResponse (data);
+						}
+					});
+						
+				}
+				catch (err) {
+					logmsg ("SendMsg Err: " + err);
+				}				
+			}
+			
+			function readdir (path) {					
+				SendCmd ("readdir", path);
+			}
+			
+			function SendMsg (tof, fromf, msg) {
+				var args = {
+							"to" : tof,
+							"from" : fromf,
+							"msg" : msg
+					};
+				SendCmd ("sendmsg", args);				
+			}
+			
+			function HandleCR (event, that) {
+				switch (event.keyCode) {
+					case 13:
+						var msg = $("#msgField").val();
+						var toField = $("#toField").val();
+						var fromField = $("#fromField").val();						
+						SendMsg (toField, fromField, msg);
+						$("#msgField").val("");
+						return false;
+						break;
+				}
+				
+				return true;
+			}
+
+			var readdirPending = false;
+			var rotAngle = 0;
+			
+			//check the queue to see if any messages need processing
+			function CheckForDocs () {
+				if (!readdirPending && pollingActive) { //debounce this so we only have one at a time
+					rotAngle = (rotAngle+30) % 360;
+					$("#spinner").rotate (rotAngle);
+					
+					readdirPending = true;
+					readdir ("./com.concluent.chat");
+				}
+			}
+			
+			$(document).ready (function () {
+				setInterval (CheckForDocs, 1500);
+			});
+			
+			
+       </script>
+       <hr />
+       <a href="/odb/system/html/index">Home</a>
+    </body>
+</html>

@@ -1,0 +1,6 @@
+<html>
+<head><title>Error: <% "";%></title></head>
+<body>
+	Error: <% console.log ("error.jhtml: " + args.options.message); args.options.message; %>
+</body>
+</html>

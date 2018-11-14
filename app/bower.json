@@ -1,0 +1,19 @@
+{
+	"name": "machttp-js",
+	"description": "machttp-js",
+	"version": "0.16.0",
+	"homepage": "https://github.com/machttp/machttp-js",
+	"license": "CC4",
+	"private": true,
+	"dependencies": {
+		"jquery": "*",
+		"bootstrap": "*",
+		"fontawesome": "*",
+		"react": "*",
+		"babel": "*",
+		"ace-builds": "*",
+		"jqueryrotate" : "*",
+		"jquery-sparkline" : "*",
+		"bootbox" : "*"
+	}
+}

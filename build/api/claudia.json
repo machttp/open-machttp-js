@@ -1,0 +1,11 @@
+{
+  "lambda": {
+    "role": "versionAPI-executor",
+    "name": "versionAPI",
+    "region": "us-east-1"
+  },
+  "api": {
+    "id": "s5cowcvjhd",
+    "module": "app"
+  }
+}

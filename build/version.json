@@ -1,0 +1,8 @@
+{
+	"url" : "http://downloads.machttp.org/machttp-js/mac/MacHTTP-js-1.0.25-mac.zip",
+	"name" : "MacHTTP-js 1.0.25",
+	"platform" : "mac",
+	"version" : "1.0.25",
+	"pub_date" : "2016-12-07T20:00:00+00:00",
+	"notes" : "New UPnP time to live setting, minor bug fixes"
+}

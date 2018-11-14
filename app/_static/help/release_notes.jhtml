@@ -1,0 +1,122 @@
+<html>
+	<head><title>MacHTTP-js Release Notes</title></head>
+<body>
+	<pre>
+v. 1.0.25, 2016-12-7
+---------------------
+- New Features:
+   - Added UPnP Time To Live setting in the Settings dialog, which 
+   controls how frequently MacHTTP-js requests a UPnP port mapping
+   for your server port from your router. Don't set less than 120 seconds
+   
+- Bug Fixes:
+   - Reordered UPnP logic to reduce call frequency and reduce socket
+   exhaustion issues on some operating systems
+   
+v. 1.0.24, 2016-11-30
+---------------------
+- Bug Fixes:
+   - Added a work-around for DNS look-ups that failed on Macs that don't have
+   some sort of sharing enabled in System Prefs. If nothing is shared, then
+   the Mac cannot resolve its own host name. Substituted the primary IP
+   address of the server for the host name as a work-around.
+   
+v. 1.0.23, 2016-11-07
+---------------------
+- New features:
+   - Added drag and drop support for temporarily serving Web content
+   from a different local directory. Just drag a folder over the MacHTTP-js
+   icon in the Finder or in the Dock and it will immediately switch to
+   using that folder to serve content. Hit the Home button in the Console
+   window to launch your default browser with the URL for the folder. 
+   Switching document root folders this way is NOT saved to the settings
+   file, allowing you to work with multiple web sites or applications at
+   once without altering your main settings.
+
+   - Added Linux command line options for specifying document root, settings
+   file, and server port. Use the --help option to see specifics
+   
+   - Added support for UPnP, which allows MacHTTP-js to request a port
+   mapping. Allows users outside your router/firewall to access MacHTTP-js
+   without requiring you to change router settings, etc. Toggle this
+   feature under Settings/Server/UPnP
+   
+   - folder watching - enabled two new scripting verbs, verbs.watchFolder
+   and verbs.unwatchFolder that allow scripts in MacHTTP-js to monitor
+   additions, changes, and deletions to files in a folder. See internal
+   docs for details.
+   
+   - added new node.js packages that are accessible to scripts, 
+   including "aws-sdk", "mime", and "nat-upnp"
+   
+   - added clearTimeout and clearInterval to the context of scripts
+   executing in JHTML and JCGI files so background tasks can be started
+   and stopped correctly.
+   
+- Bug Fixes:
+    - changed default admin password data in ODB to enable Linux and
+    Docker versions to allow remote admin via a web browser without 
+    requiring access to the local console or GUI. Default password is
+    the same.
+    
+    - enabled opening of local web browsers on non-GUI versions
+
+v. 1.0.22, 2016-10-25
+---------------------
+- initial macOS release
+
+v. 1.0.21, 2016-10-12
+---------------------
+- added auto-updating for Mac version
+
+- added auto-update setting to enable/disable automatic checks 
+for new versions
+
+- removed insecure routes for ODB Editor when running 
+in production mode.
+
+- fixed a bug in the index route handler that kept index.jhtml from
+being loaded properly.
+
+- added proper arg passing to index and error handlers so they can access
+all of the jhtml globals.
+
+v. 1.0.1-1.0.20, 2016-10-*
+--------------------------
+- interim versions created to test auto-update functionality
+
+v. 1.0.0, 2016-09-27
+---------------------
+- updated docs and samples
+
+- created release 1.0.0 for macOS
+
+v. 0.20.0, 2016-09-15
+---------------------
+- added verbs for serial port operations. see /_static/docs/ for details.
+
+- added setTimeout and setInterval to the global context of scripts, JCGIs, etc.
+
+v. 0.19.0, 2016-08-17
+---------------------
+- added support for logging to a file. See "Settings"/"Server" dialog
+for details. Only logs HTTP requests, not other console messages.
+
+- added user-defined security Realms. See "Realms" dialog for details.
+Implements basic auth for any files within a given Realm (folder). Add
+users and passwords for each realm to control access. Server restart
+required.
+
+- added user-defined "Actions". See "Actions" dialog for details.
+Actions are identical to Express.js route handlers and receive an args
+object with fields for req, res, next, and app. The latter is a
+reference to the parent express App object. The other three are request,
+response, and next objects as normally passed to Express handlers. The
+"path" setting defines the route string and can include :id terms, wild
+cards, etc., just like Express handlers expect. The script field
+specifies the Javascript file to load and execute each time the Action
+is invoked, implementing the route handler.
+
+	</pre>
+</body>
+</html>

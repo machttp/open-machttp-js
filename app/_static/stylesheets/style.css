@@ -1,0 +1,16 @@
+body {
+  padding: 50px;
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+a {
+  color: #00B7FF;
+}
+
+.xstatus-text {
+	font: 9px "Monaco", Courier, Typewriter, sans-serif;
+}
+
+.status-text {
+	font: 9px "Geneva", Helvetica, Arial, sans-serif;
+}

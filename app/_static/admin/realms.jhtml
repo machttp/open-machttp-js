@@ -1,0 +1,690 @@
+<?	
+if (args.req.query.cgi == "1") {
+	var appRoot = require ('app-root-path');
+	var realms = require (appRoot + '/modules/realms');
+	var res = args.res;
+	var req = args.req;
+
+	var json = {};
+
+
+	try {
+		var save = true;
+		debug ("realms.jhtml service: " + JSON.stringify(req.body));
+		switch (req.body.command) {
+			case "listusers":
+				json = realms.listUsers(req.body.args);
+				save = false;
+				break;
+
+			case "get1user":
+				json.realm = req.body.args.realm;
+				json.name = req.body.args.name;
+				json.pass = realms.get1User (json.realm, json.name); //"/samplepath";
+				save = false;
+				break;
+
+			case "set1user":
+				json.name = req.body.args.name;
+				json.pass = req.body.args.pass;
+				json.realm = req.body.args.realm;
+				realms.set1User (json.realm, json.name, json.pass);
+				break;
+
+			case "delete1user":
+				json.name = req.body.args.name;
+				json.realm = req.body.args.realm;
+				realms.delete1Realm (json.realm, json.name);
+				break;
+
+			case "listrealms":
+				json = realms.listRealms(); //["one", "two", "three"];
+				save = false;
+				break;
+
+			case "get1realm":
+				json.name = req.body.args;
+				json.path = realms.get1Realm (json.name); //"/samplepath";
+				save = false;
+				break;
+
+			case "set1realm":
+				json.name = req.body.args.name;
+				json.path = req.body.args.path;
+				realms.set1Realm (json.name, json.path);
+				break;
+
+			case "delete1realm":
+				json.name = req.body.args;
+				realms.delete1Realm (json.name);
+				break;
+
+			default:
+				break;
+		}
+		if (save) {
+			realms.SaveRealms();
+		}
+	}
+	catch (err) {
+		debug ("realms.jhtml service err: " + err)
+	}
+
+	var data = {
+			"command" : req.body.command,
+			"args" : json
+		};
+	
+	res.setHeader ("Content-Type", "application/json");
+	res.writeHead (200);
+	res.end (JSON.stringify (data));
+
+	results = {"handled" : true}; //inform the server we handled the full request
+	args.skipHTML = true;
+}
+"";
+?>
+
+<html>
+    <head>
+		<script>
+			var isElectron = true;
+			try {
+				window.nodeRequire = require;
+				delete window.require;
+				delete window.exports;
+				delete window.module;
+			}
+			catch (e) {
+				isElectron = false;
+			}
+		</script>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="../lib/fontawesome/css/font-awesome.min.css">
+		<script src="../lib/jquery/dist/jquery.js"></script>
+		<link rel="stylesheet" href="<%
+										var css="";
+											var theme = context.odb.getAttribute ("system/settings/globalTheme");
+											css = context.odb.getAttribute ("system/themes/" + theme);
+										css;
+									%>">
+		<script src="../lib/bootstrap/dist/js/bootstrap.min.js"></script>
+		<script src="../lib/bootbox/bootbox.js"></script>
+		<link rel="stylesheet" href="../stylesheets/settings.css">
+        <title>Realms and Users</title>
+    </head>
+    <body>
+    	<style>
+			.logo-png {
+				width: 20%;
+			}
+		</style>
+		<div class="container-fluid">
+			<div class="row vertical-align">
+				<div class="col-xs-4">
+					<h2><img class="image-responsive logo-png hidden-xs" src="../images/machttp-icon.png">Realms &amp; Users</h2>
+				</div>
+				<div class="col-xs-8">
+					<ul class="nav nav-tabs" role="tablist">
+						<li role="presentation" class="active"><a href="#realms" role="tab" data-toggle="tab">Realms</a></li>
+						<li role="presentation"><a href="#users" role="tab" data-toggle="tab">Users</a></li>
+					</ul>
+				</div>
+			</div>
+			<div class="tab-content">
+				<!-- Realms tab -->
+				<div role="tabpanel" class="tab-pane fade in active" id="realms">
+					<div class="row">
+						<div class="col-xs-3">
+							<h3>Realms <span class="glyphicon glyphicon-question-sign small" aria-hidden="true" onclick="DoHelp('realms')"></span></h3>
+						</div>
+					</div>
+					<div class="row">
+						<form class="form-horizontal">
+							<div class="col-md-3 col-sm-8">
+								<select id="realmsList" class="form-control objects" multiple size="20" onclick="DoRealmClick ();">
+								</select>
+								<p />
+								<button type="button" class="btn btn-default btn-md" onclick="CreateRealm ();">
+									<span class="glyphicon glyphicon-plus"></span>
+									<span class="menu-button"></span>
+								</button>
+								<button type="button" class="btn btn-default btn-md" onclick="DeleteRealm ();">
+									<span class="glyphicon glyphicon-minus"></span>
+									<span class="menu-button"></span>
+								</button>
+							</div>
+							<div class="col-md-9 col-sm-8">
+								<div class="form-group">
+									<label for="realmName" class="col-sm-2 control-label">Realm Name 
+										<span class="glyphicon glyphicon-question-sign" aria-hidden="true" onclick="DoHelp('realmName')"></span>
+									</label>
+									<div class="col-sm-10">
+										<input type="text" class="form-control" id="realmName" size="20">
+									</div>
+								</div>
+					
+								<div class="form-group">
+									<label for="realmPath" class="col-sm-2 control-label">Realm Path
+										<span class="glyphicon glyphicon-question-sign" aria-hidden="true" onclick="DoHelp('realmPath')"></span>
+									</label>
+									<div class="col-sm-10">
+										<input type="text" class="form-control" id="realmPath" size="60">
+									</div>
+								</div>
+										
+								<div class="form-group">
+									<div class="col-sm-2">&nbsp;</div>
+									<div class="col-sm-10">
+										<button type="button" class="btn btn-default" id="saveButton" onclick="SaveRealm ();">
+											Save
+										</button>
+									</div>
+								</div>					
+							</div>
+						</form>
+					</div>
+				</div>
+				<!-- Users tab -->
+				<div role="tabpanel" class="tab-pane fade in" id="users">
+					<div class="row">
+						<div class="col-xs-12">
+							<h3>Users <span class="glyphicon glyphicon-question-sign small" aria-hidden="true" onclick="DoHelp('users')"></span></h3>
+						</div>
+					</div>
+					<div class="row">
+						<form class="form-horizontal">
+							<div class="col-md-3 col-sm-8">
+								<div class="row form-group">
+									<div class="col-xs-12 col-sm-5 text-right">
+										<label for="userRealm" class="control-label">
+											Realm <span class="glyphicon glyphicon-question-sign" aria-hidden="true" onclick="DoHelp('userRealm')"></span>
+										</label>
+									</div>
+									<div class="col-xs-12 col-sm-7">
+										<select id="userRealm" class="form-control" onchange="DoUserRealmSelect ();">
+										</select>
+									</div>
+								</div>
+								<div class="row form-group">
+									<div class="col-xs-12">
+										<select id="userList" class="form-control objects" multiple size="15" onclick="DoUserClick ();">
+										</select>
+										<p />
+										<button type="button" class="btn btn-default btn-md" onclick="CreateUser ();">
+											<span class="glyphicon glyphicon-plus"></span>
+											<span class="menu-button"></span>
+										</button>
+										<button type="button" class="btn btn-default btn-md" onclick="DeleteUser ();">
+											<span class="glyphicon glyphicon-minus"></span>
+											<span class="menu-button"></span>
+										</button>
+									</div>
+								</div>
+							</div>
+							<div class="col-md-9 col-sm-8">
+								<div class="form-group">
+									<label for="userName" class="col-sm-2 control-label">Username 
+										<span class="glyphicon glyphicon-question-sign" aria-hidden="true" onclick="DoHelp('userName')"></span>
+									</label>
+									<div class="col-sm-10">
+										<input type="text" class="form-control" id="userName" size="20">
+									</div>
+								</div>
+					
+								<div class="form-group">
+									<label for="password" class="col-sm-2 control-label">Password
+										<span class="glyphicon glyphicon-question-sign" aria-hidden="true" onclick="DoHelp('password')"></span>
+									</label>
+									<div class="col-sm-10">
+										<input type="text" class="form-control" id="password" size="60">
+									</div>
+								</div>
+										
+								<div class="form-group">
+									<div class="col-sm-2">&nbsp;</div>
+									<div class="col-sm-10">
+										<button type="button" class="btn btn-default" id="userSaveButton" onclick="SaveUser ();">
+											Save
+										</button>
+									</div>
+								</div>					
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+		<script>
+	//--------------------------------------------------
+	
+			var port = window.location.port;
+       		var serviceURL = "/_static/admin/realms.jhtml";
+       		
+       		if (location.search !== undefined && location.search != "" && location.search != null)
+       			serviceURL += (location.search + "&");
+       		else
+       			serviceURL += "?";
+       		serviceURL += "cgi=1";
+       		
+			var helpText = {
+				'realmName' : 'The user-friendly name of the security realm',
+				'realmPath' : 'The path portion of the URL to be secured by the realm (e.g., /docs/private_stuff )',
+				'realms'	: 'Realms are used to add username/password protection to folders in your Web document tree. ' +
+							  'Click the "+" to begin creating a new realm, or select an existing one and hit "-" to delete it.',
+				'userName' 	: 'Username to grant access to (e.g., mrwheat)',
+				'password' 	: 'Password for the user',
+				'userRealm'	: 'Select the existing realm to manage users for',
+				'users'		: 'Select a realm and then add/remove users with +/-',
+				'ENDOFLIST' : ''
+				};
+		
+			var ipcRenderer = null;
+//			var globalSettings = {};
+			
+			if (isElectron) {
+				ipcRenderer = nodeRequire('electron').ipcRenderer;
+
+				ipcRenderer.on('do-command', function(event, arg) {
+					HandleResults (arg);
+				});
+			}
+			
+ 	//--------------------------------------------------
+	
+      		function logmsg (msg) {
+				console.log (msg);
+//       			var cons = $("#console");
+//       			cons.append (msg + "<br />\n");
+//       			cons.scrollTop (cons.prop('scrollHeight'));
+//       			return false;
+       		}
+       		
+	//--------------------------------------------------
+	
+			function EnableButton (name, isEnabled) {
+				if (isEnabled) {
+					$(name).removeAttr("disabled");
+				}
+				else {
+					$(name).attr("disabled", "disabled");
+				}
+			}
+			
+	//--------------------------------------------------
+	
+			function EnableField (name, isEnabled) {
+				EnableButton (name, isEnabled);
+				if (!isEnabled) {
+					$(name).val("");
+				}
+			}
+			
+	//--------------------------------------------------
+	
+			function HandleResults (arg) {
+				switch (arg.command) {
+					case "msg":
+						logmsg ("Message from server: " + arg.msg);
+						break;
+											
+					default:
+						console.log ("command not found");
+				}
+			}
+			
+	//--------------------------------------------------
+	
+			function ServerCommand (cmd, args) {
+				if (isElectron) {
+					ipcRenderer.send('do-command', {'cmd': cmd, 'args': args});
+				}
+				else {
+					switch (cmd) {
+						case 'server-alert':
+							bootbox.alert (args.msg);
+							break;
+							
+						case 'open-in-browser':
+							window.open (args, '_blank');
+							break;
+					}
+				}
+				return false;
+			}
+
+	//--------------------------------------------------
+	
+			function DoHelp (which) {
+				try {
+					var bb = bootbox.alert (helpText [which]);
+					bb.find(".btn-primary").removeClass("btn-primary")
+				}
+				catch (err) {
+				}
+				return false;
+			}
+			
+	//--------------------------------------------------
+	
+			function OpenInBrowser (url) {
+				ServerCommand ("open-in-browser", url);
+				return false;
+			}
+			
+	//--------------------------------------------------
+	
+			function ProcessResponse (data) {
+				logmsg ("ProcessResponse: " + JSON.stringify (data));
+				
+				switch (data.command) {
+					case "listusers":
+						$('#userList').empty();
+						for (var i=0; i<data.args.length; i++) {
+							$('#userList').append('<option>'+data.args[i]+'</option>');
+						}
+						break;
+						
+					case "get1user":
+						$('#userName').val(data.args.name);
+						$('#password').val(""/*data.args.pass*/);
+						break;
+						
+					case "set1user":	
+						ListUsers($("#userRealm option:selected").text());
+						break;
+						
+					case "delete1user":
+						ListUsers($("#userRealm option:selected").text());
+						break;
+					
+					case "listrealms":
+						$('#realmsList').empty();
+						$('#userRealm').empty();
+						for (var i=0; i<data.args.length; i++) {
+							$('#realmsList').append('<option>'+data.args[i]+'</option>');
+							$('#userRealm').append('<option>'+data.args[i]+'</option>');
+						}
+						ListUsers($("#userRealm option:selected").text());
+						break;
+						
+					case "get1realm":
+						$('#realmName').val(data.args.name);
+						$('#realmPath').val(data.args.path);
+						break;
+						
+					case "set1realm":
+						ListRealms();
+						break;
+						
+					case "delete1realm":
+						ListRealms();
+						break;
+					
+					default:
+						break;
+				}
+			}
+			
+	//--------------------------------------------------
+	
+			function SendCmd (cmd, vargs) {
+				logmsg ("SendCmd " + cmd);
+				var json = {
+						"command" : cmd,
+						"args" : vargs
+					};
+
+				try {
+					$.ajax ({
+						type: "POST",
+						url: serviceURL, 
+						data: JSON.stringify(json), 
+						contentType: "application/json",
+						dataType: "json",
+						success: function (data, status) {
+							logmsg ("SendCmd result: " + status + ": " + JSON.stringify(data));
+							ProcessResponse (data);
+						}
+					});
+						
+				}
+				catch (err) {
+					logmsg ("SendCmd Err: " + err);
+				}				
+			}
+			
+	//--------------------------------------------------
+	
+			function ServerAlert (msg) {
+				return ServerCommand ("server-alert", {'msg': msg, 'parent':'settings'});
+			}
+		
+	//--------------------------------------------------
+			
+			function LoadForm (name, path) {
+				logmsg ("LoadForm " + name);
+				$("#realmName").val (name);
+				$("#realmPath").val (path);
+			}
+	
+	//--------------------------------------------------
+			
+			function LoadUserForm (name, path) {
+				logmsg ("LoadUserForm " + name);
+				$("#userName").val (name);
+				$("#password").val (path);
+			}
+	
+	//--------------------------------------------------
+	
+			function ListUsers (realm) {
+				logmsg ("ListUsers " + realm);
+				//call web service
+				SendCmd ("listusers", realm);
+			}
+			
+	//--------------------------------------------------
+	
+			function Get1User (realm, name) {
+				logmsg ("Get1User " + realm + ': ' + name);
+				//call web service
+				SendCmd ("get1user", {'realm': realm, 'name': name});
+			}
+			
+	//--------------------------------------------------
+	
+			function Set1User (realm, name, pass) {
+				logmsg ("Set1User " + name);
+				//call web service
+				SendCmd ("set1user", {'realm': realm, 'name': name, 'pass': pass});
+			}
+			
+	//--------------------------------------------------
+			
+			function Delete1User (realm, name) {
+				logmsg ("Delete1User " + realm + ": " + name);
+				EnableUserForm (false);
+				//call web service
+				SendCmd ("delete1user", {'realm' : realm, 'name' : name});
+			}
+			
+	//--------------------------------------------------
+	//--------------------------------------------------
+	//--------------------------------------------------
+	
+			function ListRealms () {
+				logmsg ("ListRealms");
+				//call web service
+				SendCmd ("listrealms", null);
+			}
+			
+	//--------------------------------------------------
+	
+			function Get1Realm (name) {
+				logmsg ("Get1Realm " + name);
+				//call web service
+				SendCmd ("get1realm", name);
+			}
+			
+	//--------------------------------------------------
+	
+			function Set1Realm (name, path) {
+				logmsg ("Set1Realm " + name + ": " + path);
+				//call web service
+				SendCmd ("set1realm", {'name': name, 'path': path});
+			}
+			
+	//--------------------------------------------------
+			
+			function Delete1Realm (name) {
+				logmsg ("Delete1Realm");
+				EnableForm (false);
+				//call web service
+				SendCmd ("delete1realm", name);
+			}
+			
+	//--------------------------------------------------
+	//--------------------------------------------------
+	// --- button/control handlers ---
+	
+			// user list select
+			function DoUserClick () {
+				logmsg ("DoUserClick");
+				//get the selected realm
+				var realm = $("#userRealm option:selected").text();
+				var selected = $("#userList option:selected").text();
+				Get1User (realm, selected); //fetch the realm and stick in form
+				EnableUserForm (true);
+				return false;
+			}
+			
+			//user realm select
+			function DoUserRealmSelect () {
+				logmsg ("DoUserRealmSelect");
+				var selected = $("#userRealm option:selected").text();
+				ListUsers (selected); //fetch the realm and stick in form
+				EnableUserForm (false);
+				return false;
+			}
+	
+	//--------------------------------------------------
+			// user + button
+			function CreateUser () {
+				logmsg ("CreateUser");
+				//set form fields to empty
+				LoadUserForm ("", "");
+				EnableUserForm (true);
+				return false;
+			}
+	
+	//--------------------------------------------------
+			// user - button
+			function DeleteUser () {
+				logmsg ("DeleteUser");
+				//get selected realm from list
+				var realm = $("#userRealm option:selected").text();
+				var selected = $("#userList option:selected").text();
+				Delete1User (realm, selected);
+				//set form fields to empty
+				LoadUserForm ("", "");
+				EnableUserForm (false);
+				ListUsers ();
+				return false;
+			}
+	
+	//--------------------------------------------------
+			// user save button
+			function SaveUser () {
+				logmsg ("SaveUser");
+				//clean up realm name
+				var user =  $("#userName").val().replace ("/", "_");
+				var realm = $("#userRealm option:selected").text();
+				Set1User (realm, user, $("#password").val());
+				EnableUserForm (false);
+				return false;
+			}
+	
+	//--------------------------------------------------
+	//--------------------------------------------------
+	//--------------------------------------------------
+			// realms select
+			function DoRealmClick () {
+				logmsg ("DoRealmClick");
+				//get the selected realm
+				var selected = $("#realmsList option:selected").text();
+				Get1Realm (selected); //fetch the realm and stick in form
+				EnableForm (true);
+				return false;
+			}
+			
+	//--------------------------------------------------
+			// + button
+			function CreateRealm () {
+				logmsg ("CreateRealm");
+				//set form fields to empty
+				LoadForm ("", "");
+				EnableForm (true);
+				return false;
+			}
+	
+	//--------------------------------------------------
+			// - button
+			function DeleteRealm () {
+				logmsg ("DeleteRealm");
+				//get selected realm from list
+				var selected = $("#realmsList option:selected").text();
+				Delete1Realm (selected);
+				//set form fields to empty
+				LoadForm ("", "");
+				EnableForm (false);
+				ListRealms ();
+				return false;
+			}
+	
+	//--------------------------------------------------
+			// save button
+			function SaveRealm () {
+				logmsg ("SaveRealm");
+				//clean up realm name
+				var realm = $("#realmName").val().replace ("/","_");
+				Set1Realm (realm, $("#realmPath").val());
+				EnableForm (false);
+				return false;
+			}
+	
+	//--------------------------------------------------
+			
+			function EnableForm (enabled) {
+				logmsg ("EnableForm " + enabled);
+				EnableField ("#realmName", enabled);
+				EnableField ("#realmPath", enabled);
+				EnableButton ("#saveButton", enabled);
+			}
+			
+	//--------------------------------------------------
+			
+			function EnableUserForm (enabled) {
+				logmsg ("EnableUserForm " + enabled);
+				EnableField ("#userName", enabled);
+				EnableField ("#password", enabled);
+				EnableButton ("#userSaveButton", enabled);
+			}
+			
+	//--------------------------------------------------
+	
+			$(document).ready (function () {
+				if (isElectron) {
+					$('.electron-only').show();
+				}
+				else {
+					$('.electron-only').hide();
+				}
+				
+				EnableForm (false);
+				EnableUserForm (false);
+				ListRealms ();
+			});
+		</script>
+    </body>
+</html>

@@ -1,0 +1,43 @@
+<html>
+	<script src="../../app/_static/lib/jquery/dist/jquery.js"></script>
+
+<body>
+test loading version.js from web
+
+<script>
+
+	function RedirectDownload (d) {
+		var suffix = "";
+		
+		switch (d.platform) {
+			case "mac" :
+				suffix = ".dmg";
+				break;
+			default:
+				suffix = ".zip";
+				break;
+		}
+		
+		var url = "http://downloads.machttp.org/machttp-js/" + d.platform + "/MacHTTP-js-" + d.version + suffix;
+		console.log ("redirecting to " + url);
+		
+		window.location.replace (url);
+	}
+
+	try {
+		$.ajax ({
+				 type: "GET",
+				 url: "http://downloads.machttp.org/machttp-js/mac/version.json",
+				 dataType:'json',
+				 data: null,
+				 success: function (data) {
+					console.log (JSON.stringify(data));
+					RedirectDownload (data);
+					}
+		});
+	} catch (err) {
+		console.log ("FetchNews err: " + err);
+	}
+</script>
+</body>
+</html>

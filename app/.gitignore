@@ -33,8 +33,4 @@ node_modules
 .node_repl_history
 
 # Bower parts
-app/_static/lib
-
-# distribution parts
-dist
-release
+_static/lib

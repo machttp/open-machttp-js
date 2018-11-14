@@ -1,0 +1,690 @@
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>MacHTTP-js ODB Editor</title>
+		<link rel="stylesheet" href="/_static/lib/fontawesome/css/font-awesome.min.css">
+		<!-- script>window.$ = window.jQuery = require('../lib/jquery/dist/jquery.js');</script -->
+		<script src="/_static/lib/jquery/dist/jquery.js"></script>
+		<link rel="stylesheet" href="<%
+				var css="";
+					var theme = context.odb.getAttribute ("system/settings/globalTheme");
+					css = context.odb.getAttribute ("system/themes/" + theme);
+				css;
+			%>">
+		<!-- link rel="stylesheet" href="/lib/bootstrap/dist/css/bootstrap.css" -->
+		<script src="/_static/lib/bootstrap/dist/js/bootstrap.min.js"></script>
+		<link rel="stylesheet" type="text/css" href="/_static/stylesheets/style.css">
+
+		<style type="text/css" media="screen">
+			html, body {
+				height : 100%;
+				overflow: hidden;
+			}
+			.fill {
+				height: 100%;
+			}
+			#editor { 
+       			height: 100%;
+       			border-style: solid;
+       			border-width: 1px;
+			}
+			
+			#xsidebar { 
+				margin-inside: 4px;
+			}
+			#path {
+				font-weight: bold;
+			}
+			#xobjects {
+				font-size: 14px;
+				width: 95%;
+				height: 75%;
+      			border-style: solid;
+       			border-width: 1px;
+       			overflow: scroll;
+       			background-color: #404040;
+ 			}
+	
+			#objects {
+				font-size: 14px;
+				width: 95%;
+				height: 75%;
+      			border-style: solid;
+       			border-width: 1px;
+       			overflow: scroll;
+ 			}
+	
+			#message {
+				color: #800;
+				background-color: #CCC;
+			}
+
+			.logo-png {
+				width: 20%;
+			}
+
+
+		</style>
+
+	</head>
+	
+	<body>
+		<div class="container-fluid fill">
+			<div class="row fill">
+				<div class="col-md-3 fill" id="sidebar">
+					<div class="row">
+						<div class="col-md-12 col-sm-6 hidden-xs">
+							<h3><img class="image-responsive logo-png" src="../images/machttp-icon.png">ODB Editor</h3>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-md-12" id="path">
+						</div>
+					</div>
+					<div class="row">
+						<form>
+							<select id="objects" class="form-control objects" multiple size="25" onclick="DoNavigation (false);" ondblclick="DoNavigation (true);">
+							</select>
+							<p />
+							<button name="Parent" class="btn btn-default" type="button" value="Parent" onclick="DoParentClick();">
+							Parent
+							</button>
+							<button name="Children" class="btn btn-default" type="button" value="Children" onclick="DoChildrenClick ();">
+							Children
+							</button>
+						</form>
+					</div>
+					<div class="row fill">
+						<div class="col-md-12 fill">
+							<a href="/odb/system/html/index">Home</a>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-9 ">
+					<div class="row">
+						<div class="col-sm-12">
+							&nbsp;<span id="message">message goes here</span>
+						</div>
+					</div>
+
+					<div class="row"> <!-- form fields -->
+						<form class="form-horizontal">
+							<div class="form-group form-group-sm">
+								<label for="nameField" class="col-sm-1 control-label"><b>Name:</b></label>
+								<div class="col-sm-3">
+									<input type="text" name="nameField" id="nameField" class="form-control input-sm">
+								</div>
+								<label for="kindField" class="col-sm-1 control-label"><b>Kind:</b></label>
+								<div class="col-sm-3">
+									<select id="kindField">
+										<option value="html">html</option>
+										<option value="container">container</option>
+									</select>
+									<!-- input type="text" name="kindField" id="kindField" class="form-control input-sm" -->
+								</div>
+								<label for="triggerField" class="col-sm-1 control-label invisible"><b>Trigger:</b></label>
+								<div class="col-sm-3 invisible">
+									<input type="text" name="triggerField" id="triggerField" class="form-control input-sm">
+								</div>
+							</div>
+
+							<div class="form-group form-group-sm col-sm-6">
+								<button name="Go" class="btn btn-default btn-xs" type="button" value="Go" onclick="DoGo ();">Go</button>
+								<select id="commands">
+									<option value="newobject">New Object</option>
+									<option value="newattribute">New Attribute</option>
+									<option value="move">Move</option>
+									<option value="copy">Copy</option>
+									<option value="rename">Rename</option>
+									<option value="delete">Delete Selected</option>
+									<option value="import">Import ODB</option>
+									<option value="export">Export ODB</option>
+									<option value="saveodb">Save ODB</option>
+								</select>
+								|
+								<button name="Save" class="btn btn-default btn-xs" type="button" value="Save" id="saveButton" onclick="DoSave ();">Save</button>
+								<button name="Run" class="btn btn-default btn-xs" type="button" value="Run" onclick="DoRun ();">Run</button>
+							</div>
+							
+							<div class="form-group form-group-sm col-sm-6 text-right">
+								<select id="modes" onchange="DoModesSelect ();">
+									<option value="cpp">cpp</option>
+									<option value="csharp">csharp</option>
+									<option value="css">css</option>
+									<option value="html">html</option>
+									<option value="java">java</option>
+									<option value="javascript" selected>javascript</option>
+									<option value="json">json</option>
+									<option value="lua">lua</option>
+									<option value="markdown">markdown</option>
+									<option value="perl">perl</option>
+									<option value="php">php</option>
+									<option value="python">python</option>
+									<option value="ruby">ruby</option>
+									<option value="sh">sh</option>
+									<option value="sql">sql</option>
+									<option value="svg">svg</option>
+									<option value="tcl">tcl</option>
+									<option value="text">text</option>
+									<option value="xml">xml</option>
+								</select>
+
+								<select id="themes" onchange="DoThemesSelect ();">
+									<option value="chrome">chrome</option>
+									<option value="">clouds</option>
+									<option value="">clouds_midnight</option>
+									<option value="">cobalt</option>
+									<option value="">crimson_editor</option>
+									<option value="">dawn</option>
+									<option value="">dreamweaver</option>
+									<option value="">eclipse</option>
+									<option value="">github</option>
+									<option value="">idle_fingers</option>
+									<option value="">merbivore_soft</option>
+									<option value="">merbivore</option>
+									<option value="">mono_industrial</option>
+									<option value="">monokai</option>
+									<option value="">pastel_on_dark</option>
+									<option value="">solarized_dark</option>
+									<option value="">solarized_light</option>
+									<option value="">textmate</option>
+									<option value="">tomorrow_night</option>
+									<option value="">tomorrow</option>
+									<option value="" selected>twilight</option>
+									<option value="">vibrant_ink</option>
+								</select>
+
+								<select id="fontsizes" onchange="DoFontSizeSelect ();">
+									<option value="">9</option>
+									<option value="">10</option>
+									<option value="">12</option>
+									<option value="" selected>14</option>
+									<option value="">16</option>
+									<option value="">18</option>
+								</select>
+							</div>
+							
+						</form>
+					</div>
+					<div class="row xfill" id="editor-panel"> <!-- ace editor -->
+						<!-- div class="panel xfill" -->
+							<div class="panel-body xfill">
+								<div id="editor">
+// some sample code
+function foo(items) {
+	var x = "All this is syntax highlighted";
+	return x;
+}
+								</div>
+							</div>
+						<!-- /div -->
+					</div>
+				</div>
+			</div>
+		</div>
+		<script src="/_static/lib/ace-builds/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+		<script>
+			var odbServiceUrl = "/odbService";
+
+			var dirty_count = 0;
+			var has_children = false;
+			
+			var editor = ace.edit("editor");
+			editor.setTheme("ace/theme/twilight");
+			editor.getSession().setMode("ace/mode/javascript");
+			editor.on ("change", function (e) {
+				if (dirty_count == 0) {
+					SetSaveButtonEnable (true);
+				}
+				dirty_count++;
+				//msg ("evt dirty " + dirty_count);
+			});
+	
+			var path = "";
+
+			function msg (s) {
+				$("#message").html(s);
+				console.log (s);
+			}
+	
+			function SetEditorMode (ed) {
+				if (ed === undefined)
+					ed = "text";
+					
+				editor.getSession().setMode ("ace/mode/" + ed);
+				$("#modes").val (ed);
+			}
+			
+			function DoModesSelect () {
+				var s = $("#modes option:selected").text();
+				editor.getSession().setMode ("ace/mode/" + s);
+				msg (s + " mode selected");
+			}
+
+			function DoThemesSelect () {
+				var s = $("#themes option:selected").text();
+				editor.setTheme("ace/theme/" + s);
+				msg (s + " theme selected");
+			}
+
+			function DoFontSizeSelect () {
+				var s = $("#fontsizes option:selected").text();
+				document.getElementById('editor').style.fontSize = s + 'px';
+				document.getElementById('objects').style.fontSize = s + 'px';
+				msg (s + "px font selected");
+			}
+
+			function SetSaveButtonEnable (enable) {
+				if (enable)
+					$("#saveButton").removeAttr("disabled");
+				else
+					$("#saveButton").attr("disabled", "disabled");
+			}
+	
+			function ShowPath (s) {
+				if (s=="")
+					$("#path").html ("Select an item to edit");
+				else
+					$("#path").html(s);
+				path = s;
+			}
+	
+			function ShowName (s) {
+				$("#nameField").val(s);
+			}
+	
+			function ShowKind (s) {
+				$("#kindField").val(s);
+			}
+	
+			function ShowTrigger (s) {
+				$("#triggerField").val(s);
+			}
+	
+			function ShowContent (s) {
+				editor.setValue (s);
+				editor.moveCursorTo (0,0);
+				editor.clearSelection ();
+			}
+	
+	
+			function DoParentClick () {
+				//msg ("Parent clicked");
+				var basePath, baseName;
+		
+				basePath = baseName = path;
+		
+				i = path.lastIndexOf ('/');
+				if (i>0) {
+					basePath = basePath.slice (0,i);
+					baseName = baseName.slice (i+1);
+				}
+				else {
+					basePath = "";
+					baseName = "";
+				}
+				SetCurrentObject (basePath);
+				return false;
+			}
+	
+			function DoChildrenClick () {
+				//msg ("Children clicked");
+				var obj = $("#objects option:selected").text();
+				if (path=="")
+					SetCurrentObject (obj);
+				else
+					SetCurrentObject (path + "/" + obj);
+				return false;
+			}
+	
+			function DoSave () {
+				var tpath;
+				var tcontent;
+		
+				//msg ("Save clicked");
+				tpath = $("#nameField").val();
+				if (path!="")
+					tpath = path + "/" + tpath;
+		
+//				tcontent = encodeURIComponent (editor.getValue());
+				tcontent = editor.getValue();
+				var tkind =$("#kindField option:selected").val();
+				ODBService ({"command":"saveattribute", "path": tpath, "kind": tkind, "content": tcontent});
+				return false;
+			}
+	
+			function DoRun () {
+				var tpath;
+				var tcontent;
+		
+				msg ($("#objects option:selected").text() + " Run clicked");
+				tpath = $("#nameField").val();
+				if (path!="")
+					tpath = path + "/" + tpath;
+		
+//				tcontent = encodeURIComponent (editor.getValue());
+				tcontent = editor.getValue();
+				ODBService ({"command":"runscript", "path": tpath, "content": tcontent});
+				return false;
+			}
+	
+			function HandleSetCurrentObjectResults (data) {
+				var i;
+				var basePath, baseName;
+		
+				msg (" ");
+				
+				has_children = data.has_children;
+				
+				basePath = baseName = data.path;
+		
+				i = data.path.lastIndexOf ('/');
+				if (i>0) {
+					basePath = basePath.slice (0,i);
+					baseName = baseName.slice (i+1);
+				}
+
+				if (data.has_children) { //this was a container. drill down
+					//msg ("HandleSetCurrentObjectResults adding children to list");
+					$('#objects').empty();
+					for (i=0;i<data.children.length;i++) {
+						$('#objects').append('<option>'+data.children[i]+'</option>');
+					}
+					ShowPath (data.path);
+					//clear out name, kind, and trigger
+					ShowName ("");
+					ShowKind ("");
+					ShowTrigger ("");
+					ShowContent ("");
+				}
+				else { //this is an attribute, so fill in the other data
+					//msg ("HandleSetCurrentObjectResults no children");
+//					ShowPath (basePath);
+					ShowName (baseName);
+					ShowKind (data.kind);
+					SetEditorMode (data.editor);
+					ShowTrigger (data.trigger);
+//					ShowContent (decodeURIComponent(data.content));
+					ShowContent (data.content);
+				}
+		
+				dirty_count=0;
+				SetSaveButtonEnable (false);
+				//msg ("set dirty " + dirty_count);
+			}
+	
+			function HandleShowCurrentObjectResults (data) {
+				var i;
+				var basePath, baseName;
+		
+				msg (" ");
+
+				has_children = data.has_children;
+				
+				basePath = baseName = data.path;
+		
+				i = data.path.lastIndexOf ('/');
+				if (i>0) {
+					basePath = basePath.slice (0,i);
+					baseName = baseName.slice (i+1);
+				}
+
+//				ShowPath (basePath);
+				ShowName (baseName);
+				ShowKind (data.kind);
+				SetEditorMode (data.editor);
+				ShowTrigger (data.trigger);
+//				ShowContent (decodeURIComponent(data.content));
+				if (data.content == null)
+					ShowContent ("");
+				else
+					ShowContent (data.content);
+
+				dirty_count=0;
+				SetSaveButtonEnable (false);
+				//msg ("sho dirty " + dirty_count);
+			}
+	
+			function HandleSaveAttributeResults (data) {
+				if (data.result === "OK") {
+					SetSaveButtonEnable (false);
+					dirty_count = 0;
+					msg ("Saved " + data.path);
+				}
+				else {
+					//msg ("Error: " + data.reason); //currently handled in HandleResults
+				}
+			}
+	
+			function HandleNewObjectResults (data) {
+				if (data.result === "OK") {
+					SetSaveButtonEnable (false);
+					dirty_count = 0;
+					msg ("Created " + data.name);
+					SetCurrentObject (data.path + "/" + data.name);
+				}
+				else {
+					//msg ("Error: " + data.reason); //currently handled in HandleResults
+				}
+			}
+	
+			function HandleNewAttributeResults (data) {
+				if (data.result === "OK") {
+					SetSaveButtonEnable (false);
+					dirty_count = 0;
+					msg ("Created " + data.name);
+					SetCurrentObject (data.path);
+				}
+				else {
+					//msg ("Error: " + data.reason); //currently handled in HandleResults
+				}
+			}
+	
+			function HandleDeleteResults (data) {
+				if (data.result === "OK") {
+					SetSaveButtonEnable (false);
+					dirty_count = 0;
+					msg ("Deleted " + data.selected);
+					SetCurrentObject (data.path);
+				}
+				else {
+					//msg ("Error: " + data.reason); //currently handled in HandleResults
+				}
+			}
+			
+			function HandleSaveODBResults (data) {
+				msg ("ODB saved.");
+			}
+	
+			function HandleRunscriptResults (data) {
+				msg ("Script executed. See server console for details.");
+			}
+			
+			function HandleGetKinds (data) {
+				//msg ("kinds: " + JSON.stringify (data.kinds));
+				$('#kindField').empty();
+				for (i=0;i<data.kinds.length;i++) {
+					$('#kindField').append('<option>'+data.kinds[i]+'</option>');
+				}
+				$(document).on('change','#kindField',function(){
+               		dirty_count++;
+               		SetSaveButtonEnable (true);
+               		//msg ("kind changed " + dirty_count);
+          		});
+			}
+			
+			function HandleExport (data) {
+				msg ("Copy/Paste the exported data from the editor");
+				ShowContent (data.json);
+			}
+			
+			function HandleImport (data) {
+				dirty_count = 0;
+				SetCurrentObject (data.path);
+				msg ("Content loaded into ODB");
+			}
+	
+			function HandleResults (data) {
+				 //msg (data.result + ", " + data.command); //decodeURIComponent(data.args));	
+		 
+				 if (data.result == "OK") {
+					switch (data.command) {
+						case "setcurrentobject":
+							HandleSetCurrentObjectResults (data);
+							break;
+						case "showcurrentobject":
+							HandleShowCurrentObjectResults (data);
+							break;
+						case "saveattribute":
+							HandleSaveAttributeResults (data);
+							break;
+						case "newobject":
+							HandleNewObjectResults (data);
+							break;
+						case "newattribute":
+							HandleNewAttributeResults (data);
+							break;
+						case "delete":
+							HandleDeleteResults (data);
+							break;
+						case "runscript":
+							HandleRunscriptResults (data);
+							break;
+						case "saveodb":
+							HandleSaveODBResults (data);
+							break;
+						case "getkinds":
+							HandleGetKinds (data);
+							break;
+						case "export":
+							HandleExport (data);
+							break;
+						case "import":
+							HandleImport (data);
+							break;
+							
+						default:
+							msg ("unknown command " + data.command);
+					}
+				 }
+				 else
+					 msg ("Error: " + data.reason);
+			}
+	
+	
+			function ODBService (args) {
+				try {
+		//			msg ("calling json function");
+					$.ajax ({
+							 type: "POST",
+							 url: odbServiceUrl,
+							 dataType:'json',
+							 data: args,
+							 success: function (data) {
+								HandleResults (data);	
+								}
+					});
+				} catch (err) {
+					msg ("ODBService err: " + err);
+				}
+		
+			}
+	
+			function DirtyAlert () {
+				return window.confirm ("Discard your unsaved changes?");	
+			}
+	
+			function GetKinds () {
+				// get the list of valid object kinds
+				ODBService ({"command":"getkinds"});
+			}
+
+			function SetCurrentObject (s) {
+				// check to see if we are about to lose changes
+				var discard_changes = true;
+				if (dirty_count>0) {
+					discard_changes = DirtyAlert ();
+				}
+				if (discard_changes)
+					ODBService ({"command":"setcurrentobject", "path": s});
+			}
+
+			function ShowCurrentObject (s) {
+				// check to see if we are about to lose changes
+				var discard_changes = true;
+				if (dirty_count>0) {
+					discard_changes = DirtyAlert ();
+				}
+				if (discard_changes)
+					ODBService ({"command":"showcurrentobject", "path": s});
+			}
+
+			function DoNavigation (doubleClick) {
+				var obj = $("#objects option:selected").text();
+				if (doubleClick) {
+					//msg ("Navigation Double Click " + obj);
+					if (path=="")
+						SetCurrentObject (obj);
+					else
+						SetCurrentObject (path + "/" + obj);
+				}
+				else {
+					//msg ("Navigation Click " + obj);
+					if (path=="")
+						ShowCurrentObject (obj);
+					else
+						ShowCurrentObject (path + "/" + obj);
+				}
+			}
+
+			function DoGo (s) {
+				var cmd = $("#commands option:selected").val();
+				var selected_obj = $("#objects option:selected").text();
+				var tname =$("#nameField").val();
+				var tkind =$("#kindField option:selected").val();
+				var ttrigger =$("#triggerField").val();
+				var content = "";
+		
+				//msg (cmd + " selected ");
+		
+				try {
+					//msg (cmd + ": " + path + " / " + tname + "(" + selected_obj +")");
+			
+					if (cmd=="newattribute" || cmd=="import") {
+//						content = encodeURIComponent (editor.getValue());
+						content = editor.getValue();
+					}
+			
+					ODBService ({"command":cmd, "path":path, "name": tname, "kind": tkind, "trigger": ttrigger, 
+								"selected":selected_obj, "content": content});
+				}
+				catch (err) {
+					alert ("ajax failed " + err);
+				}
+			}
+	
+			function HandleResize () {
+				var h = document.documentElement.clientHeight; //$(window).height();
+				var p = $("#editor-panel").offset();
+				var w = $(window).width();
+				var dw = $("#editor-panel").width();
+				var dh = $("#editor-panel").height();
+				var newh = h - (p.top + 20);
+				console.log ("win info: w=" + w + " h=" + h + " dw=" + dw + " dh=" + dh + " p=" + JSON.stringify(p) + " newh=" + newh);
+				$("#editor-panel").height (newh);
+			}
+			
+			window.onresize = function () {
+				HandleResize ();
+			}
+					
+			$(document).ready (function () {
+				HandleResize ();
+				DoFontSizeSelect();
+				GetKinds ();
+				// get the top level list of objects
+				SetCurrentObject ("");
+			});
+		</script>
+	</body>
+</html>

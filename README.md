@@ -1,4 +1,11 @@
-# open-machttp-js
-Open Source MacHTTP-js project files
+# machttp-js
+A 21st century version of the Mac's first HTTP server
 
-See the [MacHTTP-js Wiki](https://github.com/machttp/open-machttp-js/wiki) for more details.
+## Getting started from the Terminal
+sudo npm install -g electron
+
+In the top level directory, do 'npm install'
+
+In the app directory, do 'npm install'
+
+In the app directory, enter 'NODE_ENV=development electron .'

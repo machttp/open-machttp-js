@@ -1,0 +1,20 @@
+{
+  "name": "versionAPI",
+  "version": "1.0.22",
+   "platform": "mac",
+   "pub_date" : "2016-10-23T20:00:00+00:00",
+   "notes" : "gm1 release, includes new samples",
+  "description": "version check api",
+  "main": "index.js",
+  "scripts": {
+  	"deploy" : "claudia create --profile claudia --region us-east-1 --api-module app",
+  	"update" : "claudia --profile claudia update",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "claudia-api-builder": "^2.0.0",
+    "aws-sdk" : "*"
+  }
+}

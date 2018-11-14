@@ -1,0 +1,29 @@
+.vertical-align {
+    display: flex;
+    align-items: center;
+}
+
+#console  {
+	overflow-y: auto;
+	border : solid 1px;
+	font-size: .75em;
+	height: 5em;
+}
+
+#messages  {
+	overflow-y: auto;
+	height : 75%;
+	border : solid 4px;
+}
+
+#spinner {
+}
+
+.logo-png {
+	width: 20%;
+}
+		
+
+.header {
+	height: 100px;
+}

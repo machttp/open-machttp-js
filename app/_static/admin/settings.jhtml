@@ -1,0 +1,540 @@
+<?
+//------ CGI code ---------------
+
+if (args.req.query.cgi == "1") {
+	var appRoot = require ('app-root-path');
+	var Settings = require (appRoot + '/modules/settings');
+	var res = args.res;
+	var req = args.req;
+
+	var json = {};
+
+	try {
+		debug ("service: " + JSON.stringify(req.body));
+		switch (req.body.command) {
+			case "savesettings":
+				json = Settings.saveSettings (req.body.args);
+				break;
+			
+			case "loadsettings":
+				json = 	Settings.loadSettings ();
+				break;
+		}
+	}
+	catch (err) {
+		debug ("settings service err: " + err)
+	}
+
+	var data = {
+			"command" : req.body.command,
+			"args" : json
+		};
+	
+	res.setHeader ("Content-Type", "application/json");
+	res.writeHead (200);
+	res.end (JSON.stringify (data));
+
+	results = {"handled" : true}; //inform the server we handled the full request
+	args.skipHTML = true;
+}
+"";
+?>
+<html>
+    <head>
+		<script>
+			var isElectron = true;
+			try {
+				window.nodeRequire = require;
+				delete window.require;
+				delete window.exports;
+				delete window.module;
+			}
+			catch (e) {
+				console.log ("skipping electron inits");
+				isElectron = false;
+			}
+		</script>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="../lib/fontawesome/css/font-awesome.min.css">
+		<script src="../lib/jquery/dist/jquery.js"></script>
+		<link rel="stylesheet" href="<%
+										var css="";
+											var theme = context.odb.getAttribute ("system/settings/globalTheme");
+											css = context.odb.getAttribute ("system/themes/" + theme);
+										css;
+									%>">
+		<script src="../lib/bootstrap/dist/js/bootstrap.min.js"></script>
+		<script src="../lib/bootbox/bootbox.js"></script>
+		<link rel="stylesheet" href="../stylesheets/settings.css">
+        <title>Settings</title>
+    </head>
+    <body>
+		<div class="container-fluid">
+			<div class="row vertical-align">
+				<div class="col-xs-4">
+					<h2><img class="image-responsive logo-png hidden-xs" src="../images/machttp-icon.png">Settings</h2>
+				</div>
+				<div class="col-xs-8">
+					<ul class="nav nav-tabs" role="tablist">
+						<li role="presentation" class="active"><a href="#server" role="tab" data-toggle="tab">Server</a></li>
+						<li role="presentation"><a href="#apps" role="tab" data-toggle="tab">Apps</a></li>
+						<li role="presentation"><a href="#user" role="tab" data-toggle="tab">User</a></li>
+					</ul>
+				</div>
+			</div>
+			<div class="tab-content">
+				<!-- Server tab -->
+				<div role="tabpanel" class="tab-pane fade in active" id="server">
+					<form class="form-horizontal">
+						<div class="form-group row">
+							<label for="port" class="col-sm-2 control-label">Web Server Port 
+								<span class="glyphicon glyphicon-question-sign" aria-hidden="true" onclick="DoHelp('port')"></span>
+							</label>
+							<div class="col-sm-2">
+								<input type="text" class="form-control" id="port" size="10">
+							</div>
+							<div class="col-sm-2">
+								Enable UPnP 
+									<span class="glyphicon glyphicon-question-sign" aria-hidden="true" onclick="DoHelp('upnp')"></span>
+								<input type="checkbox" id="upnp" size="10">
+
+							</div>
+							<div class="col-sm-4">
+								UPnP TTL
+									<span class="glyphicon glyphicon-question-sign" aria-hidden="true" onclick="DoHelp('upnpTTL')"></span>
+								<input type="text" id="upnpTTL" size="20">
+							</div>
+
+<!--
+							<label class="col-sm-2 control-label">Enable UPnP 
+								<span class="glyphicon glyphicon-question-sign" aria-hidden="true" onclick="DoHelp('upnp')"></span>
+							</label>
+							<div class="col-sm-1">
+								<input type="checkbox" class="form-control" id="upnp" size="10">
+							</div>
+							<label class="col-sm-2 control-label">UPnP TTL
+								<span class="glyphicon glyphicon-question-sign" aria-hidden="true" onclick="DoHelp('upnpTTL')"></span>
+							</label>
+							<div class="col-sm-2">
+								<input type="text" class="form-control" id="upnpTTL" size="20">
+							</div>
+-->
+						</div>
+						
+						<div class="form-group">
+							<label for="webSite" class="col-sm-2 control-label">Web Site Folder
+								<span class="glyphicon glyphicon-question-sign" aria-hidden="true" onclick="DoHelp('webSite')"></span>
+							</label>
+							<div class="col-sm-8">
+								<input type="text" class="form-control" id="webSite" size="60">
+							</div>
+							<div class="col-sm-2 electron-only">
+								<a type="submit" class="btn btn-default" onclick="SelectFolder('webSite');">
+									Select...
+								</a>
+							</div>
+						</div>
+						
+						<div class="form-group">
+							<label for="logFile" class="col-sm-2 control-label">Log File
+								<span class="glyphicon glyphicon-question-sign" aria-hidden="true" onclick="DoHelp('logFile')"></span>
+							</label>
+							<div class="col-sm-8">
+								<input type="text" class="form-control" id="logFile" size="60">
+							</div>
+							<div class="col-sm-2 electron-only">
+								<a type="submit" class="btn btn-default" onclick="SelectFile('logFile');">
+									Select...
+								</a>
+							</div>
+						</div>
+						
+						<div class="form-group">
+							<label for="logFormat" class="col-sm-2 control-label">Log Format
+								<span class="glyphicon glyphicon-question-sign" aria-hidden="true" onclick="DoHelp('logFormat')"></span>
+							</label>
+							<div class="col-sm-8">
+								<input type="text" class="form-control" id="logFormat" size="60">
+							</div>
+							<div class="col-sm-2 electron-only">
+								&nbsp;
+							</div>
+						</div>
+						
+						<div class="form-group">
+							<label for="sharedData" class="col-sm-2 control-label">Shared Folder
+								<span class="glyphicon glyphicon-question-sign" aria-hidden="true" onclick="DoHelp('sharedData')"></span>
+							</label>
+							<div class="col-sm-8">
+								<input type="text" class="form-control" id="sharedData" size="60">
+							</div>
+							<div class="col-sm-2 electron-only">
+								<a type="submit" class="btn btn-default" onclick="SelectFolder('sharedData');">
+									Select...
+								</a>
+							</div>
+						</div>
+						
+						<div class="form-group">
+							<label class="col-sm-2 control-label">Auto-Updates
+								<span class="glyphicon glyphicon-question-sign" aria-hidden="true" onclick="DoHelp('autoUpdates')"></span>
+							</label>
+							<div class="col-sm-8">
+								<input type="checkbox" class="form-control" id="autoUpdates" size="10">
+							</div>
+							<div class="col-sm-2 electron-only">
+								&nbsp;
+							</div>
+						</div>
+						
+						<div class="form-group">
+							<div class="col-sm-2">&nbsp;</div>
+							<div class="col-sm-10">
+								<a type="submit" class="btn btn-default" onclick="SaveSettings();">
+									Save Settings
+								</a>
+							</div>
+						</div>					
+					</form>
+				</div>
+				<!-- Apps tab -->
+				<div role="tabpanel" class="tab-pane fade" id="apps">
+					<form class="form-horizontal">
+						<div class="form-group">
+							<label for="startupScript" class="col-sm-2 control-label">Startup Script
+								<span class="glyphicon glyphicon-question-sign" aria-hidden="true" onclick="DoHelp('startupScript')"></span>
+							</label>
+							<div class="col-sm-8">
+								<input type="text" class="form-control" id="startupScript" size="60">
+							</div>
+							<div class="col-sm-2 electron-only">
+								<a type="submit" class="btn btn-default" onclick="SelectFile('startupScript');">
+									Select...
+								</a>
+							</div>
+						</div>
+						
+						<div class="form-group">
+							<label for="globalTheme" class="col-sm-2 control-label">Global Theme
+								<span class="glyphicon glyphicon-question-sign" aria-hidden="true" onclick="DoHelp('globalTheme')"></span>
+							</label>
+							<div class="col-sm-3">
+								<select class="form-control" id="globalTheme" onclick="HandleGlobalTheme ()">
+									<%
+										var s = "";
+										var themes = context.odb.getAttributeChildren ("system/themes").sort();
+										var selected = context.odb.getAttribute ("system/settings/globalTheme");
+										for (var i=0; i<themes.length; i++) {
+											s += "<option value=\"" + themes [i] + "\" ";
+											if (selected == themes[i])
+												s += "SELECTED";
+											s += ">" + themes[i] + "</option>\n";
+										}
+										s;
+									%>
+								</select>
+							</div>
+						</div>
+						
+						<div class="form-group">
+							<div class="col-sm-2">&nbsp;</div>
+							<div class="col-sm-10">
+								<a type="submit" class="btn btn-default" onclick="SaveSettings();">
+									Save Settings
+								</a>
+							</div>
+						</div>
+					</form>				
+				</div> 
+				<!-- User tab -->
+				<div role="tabpanel" class="tab-pane fade" id="user">
+					<form class="form-horizontal">
+						<div class="form-group">
+							<label for="firstName" class="col-sm-2 control-label">First Name
+								<span class="glyphicon glyphicon-question-sign" aria-hidden="true" onclick="DoHelp('firstName')"></span>
+							</label>
+							<div class="col-sm-10">
+								<input type="text" class="form-control" id="firstName">
+							</div>
+						</div>
+						
+						<div class="form-group">
+							<label for="lastName" class="col-sm-2 control-label">Last Name
+								<span class="glyphicon glyphicon-question-sign" aria-hidden="true" onclick="DoHelp('lastName')"></span>
+							</label>
+							<div class="col-sm-10">
+								<input type="text" class="form-control" id="lastName">
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label for="adminPassword" class="col-sm-2 control-label">Admin Password
+								<span class="glyphicon glyphicon-question-sign" aria-hidden="true" onclick="DoHelp('adminPassword')"></span>
+							</label>
+							<div class="col-sm-10">
+								<input type="text" class="form-control" id="adminPassword" placeholder="Enter new password">
+							</div>
+						</div>
+
+						<div class="form-group">
+							<div class="col-sm-2">&nbsp;</div>
+							<div class="col-sm-10">
+								<a type="submit" class="btn btn-default" onclick="SaveSettings();">
+									Save Settings
+								</a>
+							</div>
+						</div>					
+					</form>						
+				</div> 
+			</div>
+		</div>
+		<script>
+			var helpText = {
+				'port' 		: 'Port number that the web server will listen on. e.g., 80, 3000, 8080',
+				'upnp'		: 'Enables automatic port mapping via UPnP, allowing MacHTTP-js to be visible outside your firewall or router',
+				'upnpTTL'	: 'Time to Live for UPnP port mappings in seconds',
+				'webSite'	: 'Full path to your web site. e.g., /Users/mrwheat/Sites',
+				'sharedData' : 'Full path to a shared folder for collaborating with others. e.g., /Users/mrwheat/Dropbox/SharedStuff',
+				'logFormat'	: 'Log format for console display. Details can be found <a href="#" onclick="OpenInBrowser (\'https://github.com/expressjs/morgan#tokens\');">here</a> (in the "Tokens" section).',
+				'logFile'	: 'Full path to file for HTTP access log. If empty, logging to a file is disabled.',
+				'startupScript' : 'This script will be run each time MacHTTP-js starts up. Should be a .js file.',
+				'autoUpdates' : 'If checked, MacHTTP-js will automatically check for, download, and install any updates to itself.',
+				'globalTheme' : 'Selects the color scheme used by the MacHTTP-js user interface.',
+				'firstName'	: 'Your first name',
+				'lastName'	: 'Your last name',
+				'adminPassword' : 'password for the "admin" user when accessing secure MacHTTP-js settings pages and tools from a remote browser.',
+				'ENDOFLIST' : ''
+				};
+		
+			var ipcRenderer = null;
+			var globalSettings = {};
+			
+			if (isElectron) {
+				ipcRenderer = nodeRequire('electron').ipcRenderer;
+
+				ipcRenderer.on('do-command', function(event, arg) {
+					HandleResults (arg);
+				});
+			}
+			
+
+			function HandleResults (arg) {
+				switch (arg.command) {
+					case "msg":
+						logmsg (arg.msg);
+						break;
+					
+					case "stats":
+						HandleStats (arg.msg);
+						break;
+						
+					case "select-settings-folder":
+						HandleSelectFolder (arg.msg);
+						break;
+						
+					case "select-settings-file":
+						HandleSelectFolder (arg.msg);
+						break;
+						
+					default:
+						console.log ("command not found");
+				}
+			}
+			
+			
+			function ServerCommand (cmd, args) {
+				if (isElectron) {
+					ipcRenderer.send('do-command', {'cmd': cmd, 'args': args});
+				}
+				else {
+					switch (cmd) {
+						case 'server-alert':
+							bootbox.alert (args.msg);
+							break;
+							
+						case 'open-in-browser':
+							window.open (args, '_blank');
+							break;
+					}
+				}
+				return false;
+			}
+
+
+/************ !!!! Change this line when implementing Electron version !!!!! **********/
+			var port = window.location.port;
+       		var serviceURL = "/_static/admin/settings.jhtml";
+       		
+       		if (location.search !== undefined && location.search != "" && location.search != null)
+       			serviceURL += (location.search + "&");
+       		else
+       			serviceURL += "?";
+       		serviceURL += "cgi=1";
+       		
+//       		var serviceURL = "/odb/app/org.machttp.settings/api/service";
+       		
+       		function logmsg (msg) {
+       			var cons = $("#console");
+       			cons.append (msg + "<br />\n");
+       			cons.scrollTop (cons.prop('scrollHeight'));
+       			return false;
+       		}
+       		
+       		function addmsg (title,msg) {
+       			var list = $("#messages");
+       			list.append ("<div class=\"list-group-item\"><h4 class=\"list-group-item-heading\">" +
+							title + "</h4><p class=\"list-group-item-text\">" +
+							msg + "</p></div>");
+				list.scrollTop (list.prop('scrollHeight'));
+				return false;
+			}
+			
+			function DoHelp (which) {
+				try {
+					var bb = bootbox.alert (helpText [which]);
+					bb.find(".btn-primary").removeClass("btn-primary")
+				}
+				catch (err) {
+				}
+				return false;
+			}
+			
+			function OpenInBrowser (url) {
+				ServerCommand ("open-in-browser", url);
+				return false;
+			}
+			
+			function HandleSelectFolder (args) {
+				console.log ("folder args: " + JSON.stringify (args));
+				var field = $("#" + args.which);
+				field.val ( args.files );
+			}
+			
+			function HandleLoadSettings (data) {
+				addmsg ("Loaded Settings", JSON.stringify (data, null, 4));
+				globalSettings = data.args;
+				for (var key in globalSettings) {
+					try {
+						var obj = $("#"+key);
+						switch (obj.prop('tagName')) {
+							case "INPUT":
+								switch (key) {
+									case "adminPassword":
+										obj.val ("");
+										break;
+									case "autoUpdates":
+									case "upnp":
+										obj.prop ("checked", globalSettings[key] == "on");
+										break;
+									default:
+										obj.val (globalSettings[key]);
+										break;
+								}		
+								break;
+							
+							case "SELECT":			
+								obj.value = globalSettings[key];
+								break;
+						}
+					}
+					catch (err) {} //we might have keys that don't map to form fields
+				}
+
+			}
+			
+			function HandleSaveSettings (data) {
+				addmsg ("Saved Settings", JSON.stringify (data, null, 4));
+			}
+			
+			function ProcessResponse (data) {
+				switch (data.command) {
+					case "loadsettings":
+						HandleLoadSettings (data);
+						break;
+						
+					case "savesettings":
+						HandleSaveSettings (data);
+						break;		
+				}
+			}
+			
+			function SendCmd (cmd, vargs) {
+				var json = {
+						"command" : cmd,
+						"args" : vargs
+					};
+
+				try {
+					$.ajax ({
+						type: "POST",
+						url: serviceURL, 
+						data: JSON.stringify(json), 
+						contentType: "application/json",
+						dataType: "json",
+						success: function (data, status) {
+							logmsg ("SendCmd result: " + status + ": " + JSON.stringify(data));
+							ProcessResponse (data);
+						}
+					});
+						
+				}
+				catch (err) {
+					logmsg ("SendCmd Err: " + err);
+				}				
+			}
+			
+			function ServerAlert (msg) {
+				return ServerCommand ("server-alert", {'msg': msg, 'parent':'settings'});
+			}
+		
+			function LoadSettings () {
+				var args = {
+					};
+				SendCmd ("loadsettings", args);				
+			}
+			
+			function SelectFolder (folderName) {
+				ServerCommand ('select-settings-folder', folderName);
+				return false;
+			}
+			
+			function SelectFile (fileName) {
+				ServerCommand ('select-settings-file', fileName);
+				return false;
+			}
+			
+			function SaveSettings () {
+				var args = {};
+				for (var key in globalSettings) {
+					try {
+						switch (key) {
+							case "autoUpdates":
+							case "upnp":
+								globalSettings[key] = $("#" + key).prop('checked') ? "on" : "off";
+								break;
+							default:
+								globalSettings[key] = $("#" + key).val();
+								break;
+						}
+					}
+					catch (err) {}
+				}
+
+				SendCmd ("savesettings", globalSettings);
+				ServerAlert ("Settings saved. You must restart the application for changes to take effect.");
+				return false;			
+			}
+			
+			$(document).ready (function () {
+				if (isElectron) {
+					$('.electron-only').show();
+				}
+				else {
+					$('.electron-only').hide();
+				}
+				LoadSettings ();
+			});
+			
+		</script>
+    </body>
+</html>

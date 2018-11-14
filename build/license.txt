@@ -1,0 +1,23 @@
+The MacHTTP-js application as built and provided by Chuck Shotton
+through MacHTTP.Org, its associated object database data, and contents
+of its internal file system are distributed under a Creative Commons
+Attribution-NonCommercial-NoDerivatives 4.0 International Public
+License.
+
+In a nutshell, the MacHTTP-js application is free, you can use it for
+whatever you'd like, but you can't sell it. If you redistribute it, it
+has to be in its original, unmodified form as downloaded from the
+MacHTTP.Org web site.
+
+This license applies only to the MacHTTP-js application and associated
+information within the software distribution archive (.app, .zip, .dmg, .tar,
+etc.) as originally downloaded from MacHTTP.Org. Any OnePager apps or
+other web applications created using MacHTTP-js are the property of
+their authors and subject to whatever terms they specify (i.e., if you
+make something served with MacHTTP-js, it's yours!)
+
+MacHTTP-js may be used to host commercial sites and web applications as
+long as attribution is provided in a location visible to users.
+
+Full license terms can be viewed online at:
+https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode

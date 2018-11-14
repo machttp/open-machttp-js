@@ -1,0 +1,61 @@
+{
+  "name": "MacHTTP-js",
+  "version": "1.0.25",
+  "description": "A modern MacHTTP server for designers, developers, and hackers",
+  "author": "Chuck Shotton <chuck@shotton.com>",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "prestart": "cd ./app ; npm install",
+    "start": "../Electron.app/Contents/MacOS/Electron ./app",
+    "postinstall": "install-app-deps",
+    "dist": "build -m --x64 --ia32"
+  },
+  "devDependencies": {
+    "bower": "*",
+    "copyfiles": "~1.0.0",
+    "electron-builder": "*",
+    "electron": "1.4.5",
+    "live-reload": "~1.1.0",
+    "mkdirp": "~0.5.1",
+    "npm-run-all": "~2.3.0",
+    "rimraf": "~2.5.3"
+  },
+  "build": {
+    "appId": "org.machttp.machttpjs",
+    "category": "public.app-category.productivity",
+    "extend-info": "build/Info.plist",
+    "dmg": {
+      "title": "MacHTTP-js",
+      "background": "build/background.png",
+      "icon": "build/icon.icns",
+      "icon-size": 128,
+      "contents": [
+        {
+          "x": 355,
+          "y": 125,
+          "type": "link",
+          "path": "/Applications"
+        },
+        {
+          "x": 155,
+          "y": 125,
+          "type": "file"
+        },
+        {
+        	"x": 155,
+        	"y": 285,
+        	"type": "file",
+        	"path": "../machttp-js-samples",
+        	"name": "Samples"
+        },
+        {
+        	"x": 355,
+        	"y": 285,
+        	"type": "file",
+        	"path": "build/license.txt"
+        }
+      ]
+    }
+  }
+}

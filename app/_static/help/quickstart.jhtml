@@ -1,0 +1,385 @@
+<?
+   var q = args.req.query.url;				//see if a parameter called "url" was passed in the query string
+
+   if (q !== null && q !== undefined) {
+//   		console.log ("Opening URL " + q);	//scripts can output messages to the MacHTTP-js console display
+		context.verbs.openURL (q); 			//open the URL in the external browser (context is a special global provided by MacHTTP-js)
+		args.skipHTML = true;				//tell MacHTTP-js to skip sending HTML to the browser until skipHTML becomes false
+   }
+"";
+?>
+<html>
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Quick Start</title>
+	<style>
+		xhtml, xbody {
+			height : 100%;
+		}
+		
+		body {
+			padding: 4px;
+		}
+		
+		.loadMeter {
+			-moz-user-select: none;
+			-webkit-user-select: none;
+			-ms-user-select: none;
+			height: 30px;
+			font-size: 24px;
+		}
+		
+		.xmeterBox {
+			border: solid 1px;
+			height: 40px;
+		}
+		
+		#console  {
+			overflow-y: auto;
+			height : 80%;
+			border : solid 1px;
+			font-size: 100%;
+			font-family: "Menlo Regular", "Lucida Console", Monaco, monospace;
+		}
+		
+		.status-text {
+			font: 9px "Geneva", Helvetica, Arial, sans-serif;
+			height: 40px;
+		}
+		
+		.menu-button {
+			display: block;
+			text-align: center;
+			word-wrap: break-word;
+			font-size: .75em;
+		}
+		
+		.xfilled {
+			height : 100%;
+		}
+		
+		.xcontrols {
+			height : 72px;
+		}
+		
+		.small-hr {
+			height: 8px;
+			margin-top : 1px;
+			margin-bottom: 1px;
+		}
+		
+	</style>
+	<script>
+		try {
+			window.nodeRequire = require;
+			delete window.require;
+			delete window.exports;
+			delete window.module;
+		}
+		catch (e) {
+			console.log ("skipping electron inits");
+		}
+	</script>
+	<script src="/_static/lib/jquery/dist/jquery.js"></script>
+	<link rel="stylesheet" href="/_static/lib/fontawesome/css/font-awesome.min.css">
+	<script src="/_static/lib/jquery/dist/jquery.js"></script>
+	<link rel="stylesheet" href="<%
+									var css="";
+										var theme = context.odb.getAttribute ("system/settings/globalTheme");
+										css = context.odb.getAttribute ("system/themes/" + theme);
+									css;
+								%>">
+	<script src="/_static/lib/bootstrap/dist/js/bootstrap.min.js"></script>
+	<script src="/_static/lib/jquery-sparkline/dist/jquery.sparkline.min.js"></script>
+
+</head>
+<body>
+	<div class="container-fluid filled">
+		<div class="row controls">
+			<div class="col-sm-3">
+				<h2>
+					<img class="image-responsive logo-png" src="../images/machttp-icon.png" width="20%">
+					MacHTTP-js Quick Start
+				</h2>
+			</div>
+		</div>
+		
+		<hr class="small-hr" />
+		<div class="help-heading" id="tag_toc">
+			<h3>Table of Contents</h3>
+		</div>
+		<ul>
+			<li><a href="#tag_tldr">TL; DR</a></li>
+			<li><a href="#tag_launching">Launching MacHTTP-js</a></li>
+			<li><a href="#tag_configuring">Configuring MacHTTP-js</a></li>
+			<li><a href="#tag_using">Using MacHTTP-js</a></li>
+			<li><a href="#tag_moreinfo">More Info</a></li>
+			<li><a href="#tag_releasenotes">Release Notes</a></li>
+		</ul>
+		
+		<hr class="small-hr" />
+		<div class="help-heading" id="tag_tldr">
+			<h3>TL; DR</h3>
+		</div>
+		<p class="help-text">
+			<b>Quick Quick Start</b><br />
+			<ul>
+				<li>Run MacHTTP-js</li>
+				<li>Open the Settings window by clicking on the Settings button.</li>
+				<li>Go to the User tab and change your admin password (username is "admin").</li>
+				<li>Go to the Server tab and enter (or select) the full path to your web server document root. (The "Samples" folder that comes with MachTTP-js is a good folder to start with.)</li>
+				<li>Click Save Settings. Quit MacHTTP-js and relaunch.
+				<li>Click the "Home" button in the MacHTTP-js toolbar or visit <a onclick="OpenPage('http://localhost:3000/')">http://localhost:3000/</a> to see your new web server in action.</li>
+				<li>Promise to read the rest of this doc to see all the cool new things MacHTTP-js can do.</li>
+			</ul>
+		</p>
+		<hr class="small-hr" />
+		<div class="help-heading" id="tag_launching">
+			<h3>Launching MacHTTP-js</h3>
+		</div>
+		<p class="help-text">
+			<b>Mac and PC: </b><br />
+			MacHTTP-js can be launched like any application, by double-clicking it.
+		</p>
+		<p class="help-text">
+			<b>Linux: </b><br />
+			MacHTTP-js is started in interactive mode with the following command:<br />
+			<code>electron ./machttp-js.asar</code><br />
+			It can be run in command line mode as follows:<br />
+			<code>npm run linux</code>
+		</p>
+		<p class="help-text">
+			<b>Docker: </b><br />
+			MacHTTP-js can be run from the command line inside a Docker container. Assuming you have
+			the machttp-js Docker image in your Docker repository, you can invoke it with this command:<br />
+			<code>npm run dockerrun</code><br />
+			Or you can launch it directly with:<br />
+			<code>docker run -p 3000:3000 --name machttp-js -d machttp-js</code>
+		</p>
+
+		<hr class="small-hr" />
+		<div class="help-heading" id="tag_configuring">
+			<h3>Configuring MacHTTP-js</h3>
+		</div>
+		<p class="help-text">
+			MacHTTP-js provides an interactive Settings display for configuring the server.
+			You can access the display through the GUI or a web browser following the instructions 
+			below. Clicking the <span class="glyphicon glyphicon-question-sign"></span> icon
+			beside any item will provide a detailed description.
+			Once you have made changes to the settings, they should be saved by clicking
+			the "Save Settings" button. Many of the settings do not take effect until MacHTTP-js is
+			restarted, so you should restart the server whenever changes are made.
+		</p>
+		<p class="help-text">
+			MacHTTP-js saves its settings, along with other information it needs to operate, in 
+			an "object database" that it saves in your user account's home folder. The file is named
+			"machttp-js.odb" and is needed for the server to operate correctly. Do not move or delete
+			this file unless you are uninstalling MacHTTP-js.
+		</p>
+		<p class="help-text">
+			<b>Interactive User Interface </b><br />
+			Click the "Settings" button in the Console window, or select "Preferences" from the MacHTTP-js menu.
+		</p>
+		<p class="help-text">
+			<b>Web Browser Interface</b><br />
+			If MacHTTP-js is running in a "headless" mode with no graphical user interface, you can
+			access the Settings page with a URL like: <br />
+			<code>http://your.host.com:3000/admin/settings.jhtml</code><br />
+			See the next section for information on security credentials.
+		</p>
+		<p class="help-text">
+			<b>Admin Password</b><br />
+			The administrative user ID for MacHTTP.js is<br />
+			<code>admin</code><br />
+			The default password for this ID is<br />
+			<code>machttp</code><br />
+			It is very important that you change the password as soon as possible from its
+			default setting. This username/password secures access to MacHTTP-js settings and other
+			important configuration information.<br />
+			Change the Admin Password by selecting the "User" tab in the Settings window and
+			providing a new Admin Password. 
+		</p>
+		<p class="help-text">
+			<b>Additional User Settings</b><br />
+			Add your first and last name. 
+		</p>
+		<p class="help-text">
+			<b>Server Settings</b><br />
+			Click on the "Server" tab in the Settings display. This will show all of the
+			server-specfic settings MacHTTP-js needs to operate. To get started quickly,
+			change the following items:
+		</p>
+		<p class="help-text">
+			<b>Web Site Folder -</b>
+			The Web Site Folder indicates which folder on your computer will hold the contents
+			for the primary web server. Enter a <em>full</em> path to the folder, like<br />
+			<code>/Users/mrwheat/Sites/</code><br />
+			or use the "Select..." button to pick a folder.<br /><br />
+			
+			The server will look for an "index.html" file by default when accessing the top
+			level of your MacHTTP-js server via a Web browser. You can use a URL like the
+			following to access your server once it is configured: <br />
+			<code>http://localhost:3000/</code><br />
+			Alternately, you can hit the Home button in the MacHTTP-js console window to
+			go to your default local site.<p />
+			
+			<b>NOTE!</b> The Samples folder on the MacHTTP-js disk image makes a great first
+			Web site to use, since you can try out all of the examples once MacHTTP-js is
+			up and running. You can add it in the Settings or simply drag and drop the
+			folder on an installed MacHTTP-js icon in the Finder or Dock to start
+			using the Samples folder as your web site. Hit the Home button in the
+			Console window to immediately load the Samples home page.<p />
+		</p>
+		<p class="help-text">
+			Skip the other Server settings for now and click Save Settings to save your changes. You
+			now need to quit and restart MacHTTP-js for the changes to take effect. <br />
+			Note: 
+			MacHTTP-js creates a file in your home directory called "machttp-js.odb", which
+			is the object database that holds MacHTTP-js settings, applications, and data.
+			If you delete or move this file, MacHTTP-js will create a new, empty version.
+		</p>
+
+		<hr class="small-hr" />
+		<div class="help-heading" id="tag_using">
+			<h3>Using MacHTTP-js</h3>
+		</div>
+		<p class="help-text">
+			<b>Serving Web Pages</b><br />
+			After restarting MacHTTP-js, you should be able to access all of your web site
+			contents. Out of the box, MacHTTP-js serves "static" web content -- HTML pages, images,
+			scripts, style sheets, etc. However, you can extend it with ".jhtml" pages and
+			'.jcgi" scripts that allow you to create completely dynamic Web applications.
+		</p>
+		<p class="help-text">
+			<b>Embedded Javascript in HTML - </b>
+			MacHTTP-js is based on a greatly enhanced version of the Express.js web server
+			framework for Node.js. You can embed node.js compatible Javascript anywhere within
+			the HTML text of your ".jhtml" pages, contained inside &lt;% and %&gt; tags. For example:<br />
+			<code>
+			Pretend this is HTML&lt;% var x=41; ""; %&gt;... &lt;% x++; x; %&gt; is the meaning of life!
+			</code><br />
+			MacHTTP-js will insert whatever the final expression's results are in place of the
+			&lt;% %&gt; tags before returning the results to the browser, making the output look like:<br />
+			<code>
+			Pretend this is HTML... 42 is the meaning of life!
+			</code><br />
+		</p>
+		<p class="help-text">
+			<b>Javascript CGIs - </b>
+			MacHTTP-js provides a rich scripting environment with several command extensions to Javascript
+			for creating server-side CGI scripts that can provide web services to your web pages. Place
+			node.js compatible Javascript in a ".jcgi" file. MacHTTP-js makes a global variable called "args"
+			available to your JCGI. The args variable is an object that contains several elements that are
+			described in the MacHTTP-js Developer Documentation (TBS). This includes support for
+			"require" and "console" functions normally available to Node.js scripts.
+		</p>		
+		<p class="help-text">
+			Two important elements are args.res and args.req. These correspond to the Express.js
+			"response" and "request" objects that are documented at:<br />
+			<a onclick="OpenPage('http://expressjs.com/en/4x/api.html')">http://expressjs.com/en/4x/api.html</a><br />
+			Accessing these variables and their sub-fields will allow your JCGI script to perform all
+			of the usual functions needed by a node.js web service. You can also call appropriate
+			request and response methods as documented in the Express API, allowing you to set return
+			MIME types, read query arguments, etc. A simple JCGI might look like:<br />
+			
+			<pre>args.res.setHeader ("Content-Type", "text/html");
+args.res.writeHead (200);
+args.res.end ("Hello from the JCGI: query=" + JSON.stringify (args.req.query));
+results = {"handled" : true}; //inform MacHTTP-js we handled the full request</pre>
+		</p>
+		<p class="help-text">
+			<b>Developing OnePager Web Apps</b><br />
+			MacHTTP-js includes a Javascript runtime environment with 50+
+			command extensions, an integral object database for persistent storage, and
+			integration with the native operating system and user interface. All of these
+			components combine into a compelling platform for developing small applications
+			("OnePagers") that run like native applications, but are written in Javascript
+			and HTML. 
+		</p>
+		<p class="help-text">
+			More information will be available soon in the MacHTTP-js Developer Documentation.
+		</p>
+		<p class="help-text">
+			<b>Securing MacHTTP-js Pages</b><br />
+			MacHTTP-js supports the definition of multiple security realms and associated
+			username/password pairs. You can configure these by clicking on the "Realms" button
+			in the Console display. Defining a new realm (click the '+' button in the lower left)
+			will force the user to enter a valid username and password in order to access any
+			web content located at the path specified. Once you have configured one or more realms,
+			visit the "Users" tab of the Realms and Users dialog to added users and passwords for
+			the realms.
+		</p>
+		<p class="help-text">
+			NOTE! You must restart MacHTTP-js for Realm definitions to take effect. However, you can
+			add and remove users without requiring a restart.
+		</p>
+
+		<hr class="small-hr" />
+		<div class="help-heading" id="tag_moreinfo">
+			<h3>More Info</h3>
+		</div>
+		<p class="help-text">
+			You can find more information at <a onclick="OpenPage('http://www.machttp.org/')">http://www.machttp.org/</a>
+			or join the <a onclick="OpenPage('https://groups.google.com/d/forum/machttp-js')">MacHTTP-js Discussion Forum</a> on Google Groups.
+		</p>
+		<p class="help-text">
+			Sample code and example scripts and apps can be found at:<br />
+			<a onclick="OpenPage('https://github.com/machttp/machttp-js-samples')">https://github.com/machttp/machttp-js-samples</a>
+			<p />The Samples folder is also included on the MacHTTP-js disk image for Mac users.
+		</p>
+		<div class="help-heading" id="tag_releasenotes">
+			<h3>Release Notes</h3>
+		</div>
+		<p class="help-text">
+			Read the release notes for the current version <a href="release_notes.jhtml">here</a>.
+		</p>
+		<hr>
+<!-- CC license info -->
+		<div class="help-heading" id="tag_moreinfo">
+			<h3>MacHTTP-js License</h3>
+		</div>
+		<a rel="license" href="#" onclick="OpenPage('http://creativecommons.org/licenses/by-nc-nd/4.0/')"><img alt="Creative Commons License" style="border-width:0" src="/_static/images/license.png" /></a>
+		The MacHTTP-js application is distributed with a Creative Commons license. Click the image
+		for more details on its terms. In a nutshell, it's free, you can use it for whatever you'd like,
+		but you can't sell it. If you redistribute it, it has to be in its original, unmodified form as
+		downloaded from the MacHTTP.Org web site. That's it! Have fun!
+	</div>
+	
+	<script>
+	function GoHome () {
+		window.open ("/odb/system/html/index", '_self');
+	}
+	
+	function msg (m) {
+		console.log (m);
+	}
+	
+	function IgnoreResults (data) {
+	}
+	
+	function OpenPage (url) {
+		Service ("quickstart.jhtml?url=" + url, IgnoreResults);
+		return false;
+	}
+	
+	function Service (svc, results) {
+		msg ("Service...");
+		try {
+			$.ajax ({
+					 type: "GET",
+					 url: svc,
+					 dataType:'json',
+					 data: null,
+					 success: function (data) {
+						results (data);	
+						}
+			});
+		} catch (err) {
+			msg ("Service err: " + err);
+		}
+
+	}
+	
+	</script>
+</body>
+</html>

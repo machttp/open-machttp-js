@@ -1,0 +1,291 @@
+<html>
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>MacHTTP-js Console</title>
+	<style>
+		xhtml, xbody {
+			height : 100%;
+		}
+		
+		body {
+			padding: 4px;
+		}
+		
+		.loadMeter {
+			-moz-user-select: none;
+			-webkit-user-select: none;
+			-ms-user-select: none;
+			height: 30px;
+			width: 100%;
+			font-size: 24px;
+		}
+		
+		.xmeterBox {
+			border: solid 1px;
+			height: 40px;
+		}
+		
+		#console  {
+			overflow-y: auto;
+			height : 80%;
+			border : solid 1px;
+			font-size: 100%;
+			font-family: "Menlo Regular", "Lucida Console", Monaco, monospace;
+		}
+		
+		.status-text {
+			font: 9px "Geneva", Helvetica, Arial, sans-serif;
+			height: 40px;
+		}
+		
+		.menu-button {
+			display: block;
+			text-align: center;
+			word-wrap: break-word;
+			font-size: .75em;
+		}
+		
+		.xfilled {
+			height : 100%;
+		}
+		
+		.xcontrols {
+			height : 72px;
+		}
+		
+		.small-hr {
+			height: 8px;
+			margin-top : 1px;
+			margin-bottom: 1px;
+		}
+		
+		.logo-png {
+			width: 20%;
+		}
+		
+	</style>
+	<script>
+		try {
+			window.nodeRequire = require;
+			delete window.require;
+			delete window.exports;
+			delete window.module;
+		}
+		catch (e) {
+			console.log ("skipping electron inits");
+		}
+	</script>
+	<script src="lib/jquery/dist/jquery.js"></script>
+	<link rel="stylesheet" href="lib/fontawesome/css/font-awesome.min.css">
+	<script src="lib/jquery/dist/jquery.js"></script>
+	<link rel="stylesheet" href="<%
+									var css="";
+										var theme = context.odb.getAttribute ("system/settings/globalTheme");
+										css = context.odb.getAttribute ("system/themes/" + theme);
+									css;
+								%>">
+	<script src="lib/bootstrap/dist/js/bootstrap.min.js"></script>
+	<script src="lib/jquery-sparkline/dist/jquery.sparkline.min.js"></script>
+
+</head>
+<body>
+	<div class="container-fluid filled">
+		<div class="row controls">
+			<div class="col-md-3 col-sm-3 hidden-xs">
+				<h3><img class="image-responsive logo-png" src="images/machttp-icon.png">Console</h3>
+			</div>
+			<div class="col-md-9 col-sm-9">
+				<button type="button" class="btn btn-default btn-md" onclick="ServerCommand ('home',null,this);">
+					<span class="glyphicon glyphicon-home" aria-hidden="true"></span>
+					<span class="menu-button">Home</span>
+				</button>
+<%
+	var edRes = "";
+	var showEditor = (context.odb.getAttribute ("system/config/showEditor") === "1") || context.developmentMode;
+	if (showEditor) {
+		edRes = `
+				<button type="button" class="btn btn-default btn-md" onclick="ServerCommand ('new-editor',null,this);">
+					<span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+					<span class="menu-button">Editor</span>
+				</button>
+		`;
+	}
+	edRes;
+%>
+				<button type="button" class="btn btn-default btn-md" onclick="ClearLog(this);">
+					<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+					<span class="menu-button">Clear Log</span>
+				</button>
+				<button type="button" class="btn btn-default btn-md" onclick="OpenActions(this);">
+					<span class="glyphicon glyphicon-tasks" aria-hidden="true"></span>
+					<span class="menu-button">Actions</span>
+				</button>
+				<button type="button" class="btn btn-default btn-md" onclick="OpenRealms(this);">
+					<span class="glyphicon glyphicon-lock" aria-hidden="true"></span>
+					<span class="menu-button">Realms</span>
+				</button>
+				<button type="button" class="btn btn-default btn-md" onclick="OpenSettings(this);">
+					<span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
+					<span class="menu-button">Settings</span>
+				</button>
+				<button type="button" class="btn btn-default btn-md" onclick="ServerCommand ('help',null,this);">
+					<span class="glyphicon glyphicon-question-sign" aria-hidden="true""></span>
+					<span class="menu-button">Help</span>
+				</button>
+			</div>
+		</div>
+		<hr class="small-hr" />
+
+		<div class="row status-text">
+			<div class="col-md-1">
+				Connections:
+			</div>
+			<div class="col-md-1 col-xs-2">Total: <span id="stat-connections">0</span></div>
+			<div class="col-md-1 col-xs-2">Current: <span id="stat-openConnections">0</span></div>
+			<div class="col-md-1 col-xs-2">High: <span id="stat-high">0</span></div>
+			<div class="col-md-1 col-xs-2">Errors: <span id="stat-errors">0</span></div>
+			<!--div class="col-md-2 col-xs-2">Sent: 123mb</div-->
+			<div class="col-md-3 col-xs-3">Up since: <span id="stat-upSince"></span></div>
+			<div class="col-md-4 col-xs-12 meterBox">
+				<span class="loadMeter">Idle</span>
+			</div>
+		</div>
+
+		<div class="row filled">
+			<div id="console" class="col-md-12">
+			</div>
+		</div>
+	</div>
+	<script>
+		const ipcRenderer = nodeRequire('electron').ipcRenderer;
+
+		ipcRenderer.on('do-command', function(event, arg) {
+//			console.log('received ' + JSON.stringify(arg)); // prints "pong"
+		  	switch (arg.command) {
+		  		case "msg":
+		  			logmsg (arg.msg);
+		  			break;
+		  			
+		  		case "stats":
+		  			HandleStats (arg.msg);
+		  			break;
+		  				
+		  		default:
+		  			console.log ("command not found");
+		  	}
+		});
+		
+		var oldStats = null;
+		
+		function HandleStats (stats) {
+			var stat = Object.keys(stats);
+			for (var n=0;n<stat.length;n++) {
+				var olds = (oldStats === null ? 0 : oldStats[stat[n]]);
+				var news = stats[stat[n]];
+				if (olds != news) {
+					$("#stat-" + stat[n]).text (news);
+				}
+			}
+			oldStats = stats;
+		}
+		
+//-----------------------------------------------------------------
+
+		function ServerCommand (cmd, args,that) {
+			if (that !== null && that !==undefined)
+				that.blur();
+			ipcRenderer.send('do-command', {'cmd': cmd, 'args': args});
+			return false;
+		}
+
+		function ClearLog (that) {
+			that.blur();
+			$("#console").html ("");
+			return false;
+		}
+		
+		function ReloadConsole () {
+			return ServerCommand ("reload-console", null, null);
+		}
+		
+		function logmsg (msg) {
+			var cons = $("#console");
+			cons.append (msg);
+			cons.scrollTop (cons.prop('scrollHeight'));
+			return false;
+		}
+		
+		function ToggleDevTools () {
+			return ServerCommand ("toggle-dev-tools", null, null);
+		}
+		
+		function ServerAlert (msg) {
+			return ServerCommand ("server-alert", {'msg': msg}, null);
+		}
+		
+		function OpenSettings (that) {
+			return ServerCommand ('new-settings',null,that);
+		}
+		
+		function OpenRealms (that) {
+			return ServerCommand ('new-realms',null,that);
+		}
+		
+		function OpenActions (that) {
+			return ServerCommand ('new-actions',null,that);
+		}
+		
+		function rand (n) {
+			return Math.floor (Math.random()*n);
+		}
+		
+		var meterColor = "#808080";
+		var meterInterval = 5000;
+		var meterBarCount = 36;
+		var meterData = new Array();
+		
+		function InitLevelMeter () {
+			var i;
+			for (i=0;i<meterBarCount;i++)
+				meterData.push (0);
+				
+//			$('.loadMeter').sparkline(meterData, {type: 'bar', barColor: meterColor});
+		}
+		
+		var lastConnections = -1;
+		
+		function UpdateLoadMeter () {
+			var curConnections = parseInt($("#stat-connections").html());
+			if (lastConnections == -1)
+				lastConnections = curConnections;
+			//console.log ("last: " + lastConnections + ", cur:" + curConnections);
+			var temp = meterData.shift();
+			meterData.push (curConnections-lastConnections); //(rand(20));
+			lastConnections = curConnections;
+			$('.loadMeter').sparkline(meterData, {type: 'bar', barColor: meterColor});
+		}
+		
+		function ResizeConsole () {
+//			var w = $(window).width();
+			var h = document.documentElement.clientHeight; //$(window).height();
+//			var dw = $("#console").width();
+//			var dh = $("#console").height();
+			var p = $("#console").position();
+			var newh = h - (p.top + 16);
+//			console.log ("win info: w=" + w + " h=" + h + " dw=" + dw + " dh=" + dh + " p=" + JSON.stringify(p) + " newh=" + newh);
+			$("#console").height (newh);
+		}
+		
+		window.onresize = function () {
+			ResizeConsole ();
+		}
+		
+		$(document).ready (function () {
+			ResizeConsole ();
+			InitLevelMeter ();
+			setInterval (UpdateLoadMeter, meterInterval);
+		});
+	</script>
+       		
+</body>
+</html>
